@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #08080e;
+  --color-ink-2: #0e0e17;
+  --color-surface: #15151f;
+  --color-surface-2: #1d1d2b;
+  --color-surface-3: #262636;
+  --color-line: #2c2c3e;
+  --color-fg: #f4f4f8;
+  --color-muted: #9292ab;
+  --color-faint: #62627a;
+
+  --color-brand: #ff4d8d;
+  --color-brand-2: #a855f7;
+  --color-brand-3: #22d3ee;
+  --color-energy: #c6f84e;
+  --color-warn: #fbbf24;
+  --color-danger: #f4536b;
+
+  --radius-xl: 1.1rem;
+  --radius-2xl: 1.5rem;
+
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --animate-rise: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop: pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+  --animate-pulse-ring: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  from { background-position: -180% 0; }
+  to { background-position: 180% 0; }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 55%, transparent); }
+  70% { box-shadow: 0 0 0 16px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background: var(--color-ink);
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(80rem 40rem at 12% -10%, color-mix(in oklab, var(--color-brand) 14%, transparent), transparent 60%),
+    radial-gradient(70rem 38rem at 92% 4%, color-mix(in oklab, var(--color-brand-2) 15%, transparent), transparent 62%),
+    var(--color-ink);
+  background-attachment: fixed;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-brand) 45%, transparent);
+}
+
+input, textarea, select, button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Masque les flèches des inputs number : on met nos propres boutons. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line/70 bg-surface/80 backdrop-blur-xl;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:border-line active:scale-[0.985];
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-line bg-ink-2/80 px-3.5 py-2.5 text-[15px]
+           text-fg outline-none transition placeholder:text-faint
+           focus:border-brand/70 focus:ring-2 focus:ring-brand/25;
+  }
+
+  .label {
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.09em] text-faint;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-energy,
+  .btn-ghost,
+  .btn-quiet,
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px]
+           font-semibold transition-all duration-150 active:scale-[0.97]
+           disabled:pointer-events-none disabled:opacity-45;
+  }
+
+  .btn-primary {
+    background-image: linear-gradient(105deg, var(--color-brand), var(--color-brand-2));
+    box-shadow: 0 8px 26px -12px color-mix(in oklab, var(--color-brand) 90%, transparent);
+    color: #fff;
+  }
+
+  .btn-energy {
+    background-image: linear-gradient(105deg, var(--color-energy), #8fe63a);
+    box-shadow: 0 8px 26px -12px color-mix(in oklab, var(--color-energy) 80%, transparent);
+    color: var(--color-ink);
+  }
+
+  .btn-ghost {
+    @apply border border-line bg-surface-2/70 text-fg hover:bg-surface-3;
+  }
+
+  .btn-quiet {
+    @apply text-muted hover:text-fg;
+  }
+
+  .btn-danger {
+    @apply border border-danger/40 bg-danger/10 text-danger hover:bg-danger/20;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-surface-2/70
+           px-2.5 py-1 text-xs font-medium text-muted;
+  }
+
+  .section-title {
+    @apply text-[11px] font-bold uppercase tracking-[0.14em] text-faint;
+  }
+
+  .gradient-text {
+    background-image: linear-gradient(100deg, var(--color-brand), var(--color-brand-2) 60%, var(--color-brand-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .skeleton {
+    @apply rounded-xl bg-surface-2;
+    background-image: linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in oklab, var(--color-surface-3) 90%, transparent) 40%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
