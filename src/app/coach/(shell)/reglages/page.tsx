@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { BookOpen, LogOut, Share, Smartphone } from "lucide-react";
 import { requireCoach } from "@/lib/auth";
-import { getSettings, listExercises } from "@/lib/queries";
+import { getSettings } from "@/lib/queries";
+import { getDatabaseStateAction } from "@/lib/actions/database";
 import { logoutAction } from "@/lib/actions/auth";
 import { TopBar } from "@/components/nav";
 import { SectionHeading } from "@/components/ui";
 import { SettingsForm } from "@/components/coach/settings-form";
+import { DatabaseCard } from "@/components/coach/database-card";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReglagesPage() {
   const role = await requireCoach();
-  const [settings, exercises] = await Promise.all([getSettings(), listExercises()]);
-  const customCount = exercises.filter((e) => e.isCustom).length;
+  // Cette page doit rester accessible même si les tables n'existent pas encore :
+  // c'est d'ici qu'on installe la base.
+  const [settings, dbState] = await Promise.all([getSettings(), getDatabaseStateAction()]);
 
   return (
     <>
@@ -23,17 +26,19 @@ export default async function ReglagesPage() {
 
       <div className="mt-7">
         <SectionHeading title="Bibliothèque" />
-        <Link href="/coach/exercices" className="card card-hover flex items-center gap-3 p-4">
+        <Link href="/coach/exercices" className="card card-hover mb-2.5 flex items-center gap-3 p-4">
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-2 text-brand">
             <BookOpen className="size-5" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-semibold">Gérer les exercices</span>
             <span className="block text-[12px] text-faint">
-              {exercises.length} exercices · {customCount} créés par toi
+              {dbState.total} exercices
+              {dbState.custom > 0 ? ` · ${dbState.custom} créés par toi` : ""}
             </span>
           </span>
         </Link>
+        <DatabaseCard initial={dbState} />
       </div>
 
       <div className="mt-7">

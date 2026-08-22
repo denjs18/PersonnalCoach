@@ -45,12 +45,14 @@ AUTH_SECRET="une-longue-chaine-aleatoire"`}
       </Step>
 
       <Step number={3} icon={<Terminal className="size-4" />} title="Créer les tables">
-        <p>Une seule commande, depuis le dossier du projet :</p>
-        <pre className="mt-2 overflow-x-auto rounded-lg bg-ink p-3 text-[11.5px] text-muted">
-          npm run db:setup
-        </pre>
+        <p>
+          Une fois les variables en place, connecte-toi à l'app avec ton code coach et va dans{" "}
+          <strong className="text-fg">Réglages → Base de données → Installer la base</strong>.
+          Les tables et les 119 exercices de départ sont créés en quelques secondes, sans terminal.
+        </p>
         <p className="mt-2 text-[12px] text-faint">
-          Elle crée les tables et installe les 119 exercices de départ.
+          Depuis un ordinateur, l'équivalent en ligne de commande est{" "}
+          <code className="rounded bg-surface-2 px-1 py-0.5 text-[11px]">npm run db:setup</code>.
         </p>
       </Step>
 

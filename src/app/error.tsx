@@ -35,9 +35,14 @@ export default function ErrorBoundary({
       </button>
 
       {looksLikeDb ? (
-        <a href="/installation" className="btn-quiet mt-2">
-          Voir les étapes d'installation
-        </a>
+        <>
+          <a href="/coach/reglages" className="btn-ghost mt-2">
+            Installer la base (espace coach)
+          </a>
+          <a href="/installation" className="btn-quiet mt-1">
+            Voir les étapes d'installation
+          </a>
+        </>
       ) : null}
     </main>
   );

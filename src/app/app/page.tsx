@@ -38,13 +38,29 @@ const PUNCHLINES = [
 
 export default async function AthleteHome() {
   const role = await requireRole();
-  const [upcoming, missed, completed, stats, settings] = await Promise.all([
+  const data = await Promise.all([
     getUpcomingWorkouts(8),
     getMissedWorkouts(4),
     getCompletedWorkouts(3),
     getStats(),
     getSettings(),
-  ]);
+  ]).catch(() => null);
+
+  // La base n'est pas encore installée : inutile de l'inquiéter avec une erreur.
+  if (!data) {
+    return (
+      <>
+        <TopBar title={greeting()} role={role} />
+        <EmptyState
+          icon={<CalendarClock className="size-6" />}
+          title="L'app finit de s'installer"
+          description="Ton coach termine la configuration. Reviens dans quelques minutes !"
+        />
+      </>
+    );
+  }
+
+  const [upcoming, missed, completed, stats, settings] = data;
 
   const today = todayISO();
   const name = settings.athlete_name?.trim();

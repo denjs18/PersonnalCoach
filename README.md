@@ -76,21 +76,7 @@ pendant deux semaines.
    postgresql://neondb_owner:xxxx@ep-xxxx-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require
    ```
 
-### 2. Créer les tables et la bibliothèque d'exercices
-
-Sur ton ordinateur, dans le dossier du projet :
-
-```bash
-npm install
-cp .env.example .env.local     # puis colle ton DATABASE_URL dedans
-npm run db:setup
-```
-
-La commande crée les tables et installe les 119 exercices. Elle est
-**ré-exécutable sans risque** : elle ne casse rien et ne touche pas aux exercices
-que tu as créés toi-même.
-
-### 3. Déployer sur Vercel
+### 2. Déployer sur Vercel
 
 1. Pousse ce dépôt sur GitHub.
 2. Sur **vercel.com** : *Add New → Project*, choisis le dépôt, *Deploy*.
@@ -101,15 +87,38 @@ que tu as créés toi-même.
    | `DATABASE_URL` | la chaîne de connexion Neon |
    | `COACH_PIN` | ton code (4 à 8 chiffres) |
    | `ATHLETE_PIN` | son code |
-   | `AUTH_SECRET` | une longue chaîne aléatoire (voir ci-dessous) |
+   | `AUTH_SECRET` | une longue chaîne aléatoire |
 
-   Pour générer le secret :
+   Pour générer le secret, sur un ordinateur :
    ```bash
    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    ```
+   Sans terminal, n'importe quel générateur de mot de passe fait l'affaire :
+   il faut simplement une chaîne longue (32 caractères minimum) et aléatoire.
 
 4. Redéploie (*Deployments → ⋯ → Redeploy*) pour que les variables soient prises
    en compte.
+
+### 3. Créer les tables — **sans terminal**
+
+Connecte-toi à l'app avec ton code coach, puis va dans
+**Réglages → Base de données → Installer la base**.
+
+Les tables et les 119 exercices de départ sont créés en quelques secondes. Si tu
+arrives sur l'app avant d'avoir fait ça, elle t'y emmène toute seule.
+
+Le bouton est **sans risque et rejouable** : il crée ce qui manque, remet à jour
+les exercices de la bibliothèque de base, et ne touche jamais aux exercices que
+tu as créés ni aux séances déjà enregistrées. Reclique dessus après chaque mise à
+jour du projet qui ajoute des exercices.
+
+Depuis un ordinateur, l'équivalent en ligne de commande est :
+
+```bash
+npm install
+cp .env.example .env.local     # colle ton DATABASE_URL dedans
+npm run db:setup
+```
 
 ### 4. L'installer sur le téléphone
 
@@ -127,8 +136,9 @@ icône. La connexion est mémorisée un an : pas de code à retaper à chaque fo
 
 ```bash
 npm install
-npm run db:setup      # une seule fois
-npm run dev           # http://localhost:3000
+cp .env.example .env.local    # renseigne DATABASE_URL
+npm run db:setup              # ou le bouton dans Réglages → Base de données
+npm run dev                   # http://localhost:3000
 ```
 
 Sans `COACH_PIN` / `ATHLETE_PIN` dans l'environnement, les codes de développement
@@ -172,11 +182,12 @@ src/
     player/                 déroulé de séance + chrono de repos
     coach/                  composition, sélecteur et fiche d'exercice
   lib/
-    db/                     schéma Drizzle et connexion
-    actions/                Server Actions (séances, séries, exercices…)
+    db/schema.ts            tables, vues par Drizzle
+    db/schema-sql.ts        le SQL de création, idempotent (source unique)
+    db/index.ts             connexion, Neon en HTTP ou Postgres en TCP
+    actions/                Server Actions (séances, séries, exercices, base)
     queries.ts              lectures (séances, stats, progression)
     exercise-library.ts     les 119 exercices de départ
-db/schema.sql               le schéma SQL, idempotent
 ```
 
 ### Les tables
@@ -194,7 +205,9 @@ db/schema.sql               le schéma SQL, idempotent
 ## ✏️ Personnaliser
 
 - **Ajouter des exercices** — depuis l'app (*Bibliothèque → Créer un exercice*),
-  ou en modifiant `src/lib/exercise-library.ts` puis `npm run db:seed`.
+  ou en modifiant `src/lib/exercise-library.ts` puis en cliquant
+  *Réglages → Base de données → Mettre à jour la bibliothèque*
+  (ou `npm run db:seed` en ligne de commande).
 - **Changer les couleurs** — les variables de thème sont en haut de
   `src/app/globals.css` (`--color-brand`, `--color-energy`…).
 - **Changer les blocs de séance** (échauffement, principal…) — `SECTIONS` dans

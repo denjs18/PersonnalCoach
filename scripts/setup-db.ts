@@ -4,14 +4,16 @@
  *   npm run db:setup      -> tables + bibliothèque
  *   npm run db:seed       -> bibliothèque uniquement
  *   npm run db:reset      -> SUPPRIME tout puis recrée (attention !)
+ *
+ * Pas de terminal sous la main ? L'espace coach propose le même bouton dans
+ * Réglages → Base de données.
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { neon } from "@neondatabase/serverless";
 import { Pool } from "pg";
 import { config } from "dotenv";
 import { EXERCISE_LIBRARY } from "../src/lib/exercise-library";
 import { isNeonUrl, sslOptionsFor } from "../src/lib/db/connection";
+import { DROP_STATEMENT, SCHEMA_STATEMENTS } from "../src/lib/db/schema-sql";
 
 config({ path: ".env.local", quiet: true });
 config({ path: ".env", quiet: true });
@@ -20,7 +22,7 @@ const url = process.env.DATABASE_URL;
 if (!url) {
   console.error(
     "\n❌  DATABASE_URL manquant.\n" +
-      "   Crée un fichier .env.local à la racine avec ton URL Neon.\n" +
+      "   Crée un fichier .env.local à la racine avec ton URL Postgres.\n" +
       "   Modèle disponible dans .env.example\n",
   );
   process.exit(1);
@@ -41,11 +43,7 @@ function createClient(connectionString: string): RawClient {
       close: async () => {},
     };
   }
-  const pool = new Pool({
-    connectionString,
-    ssl: sslOptionsFor(connectionString),
-    max: 2,
-  });
+  const pool = new Pool({ connectionString, ssl: sslOptionsFor(connectionString), max: 2 });
   return {
     query: async (text, params) => (await pool.query(text, params as unknown[])).rows,
     close: () => pool.end(),
@@ -57,26 +55,15 @@ const args = process.argv.slice(2);
 const seedOnly = args.includes("--seed-only");
 const reset = args.includes("--reset");
 
-/** Découpe un fichier SQL en instructions exécutables une par une. */
-function splitStatements(source: string): string[] {
-  return source
-    .split(/;\s*$/m)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !/^--/.test(s.replace(/\n/g, " ").trim()));
-}
-
 async function run() {
   if (reset) {
     console.log("🗑️   Suppression des tables existantes…");
-    await sql.query(
-      "DROP TABLE IF EXISTS set_logs, workout_items, workouts, exercises, settings CASCADE",
-    );
+    await sql.query(DROP_STATEMENT);
   }
 
   if (!seedOnly) {
     console.log("📐  Création des tables…");
-    const schemaPath = join(process.cwd(), "db", "schema.sql");
-    for (const statement of splitStatements(readFileSync(schemaPath, "utf8"))) {
+    for (const statement of SCHEMA_STATEMENTS) {
       await sql.query(statement);
     }
     console.log("✅  Tables prêtes.");

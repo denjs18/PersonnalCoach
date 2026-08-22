@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarDays, Dumbbell, Eye, PenLine } from "lucide-react";
 import { requireCoach } from "@/lib/auth";
 import {
@@ -20,13 +21,18 @@ export default async function CoachPlanning() {
   const role = await requireCoach();
   const today = todayISO();
 
-  const [workouts, templates, stats, settings, range] = await Promise.all([
+  // Si les tables n'existent pas encore, on envoie le coach vers l'écran
+  // d'installation plutôt que de lui montrer une page d'erreur.
+  const data = await Promise.all([
     getCoachWorkouts(60),
     getTemplates(),
     getStats(),
     getSettings(),
     getWorkoutsBetween(addDaysISO(today, -2), addDaysISO(today, 20)),
-  ]);
+  ]).catch(() => null);
+
+  if (!data) redirect("/coach/reglages");
+  const [workouts, templates, stats, settings, range] = data;
 
   const days: DayCell[] = buildDays(23, addDaysISO(today, -2)).map((iso) => ({
     iso,
