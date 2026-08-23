@@ -32,6 +32,7 @@ export function ExerciseForm({
   const [equipment, setEquipment] = useState<string[]>(initial?.equipment ?? []);
   const [muscles, setMuscles] = useState((initial?.muscles ?? []).join(", "));
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [steps, setSteps] = useState((initial?.steps ?? []).join("\n"));
   const [cues, setCues] = useState(initial?.cues ?? "");
   const [tracking, setTracking] = useState(initial?.tracking ?? "reps_weight");
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export function ExerciseForm({
         equipment,
         muscles: muscles.split(",").map((m) => m.trim()).filter(Boolean),
         description,
+        steps: steps.split("\n").map((line) => line.replace(/^\s*\d+[.)]\s*/, "").trim()).filter(Boolean),
         cues,
         tracking,
       });
@@ -177,6 +179,23 @@ export function ExerciseForm({
           placeholder="En quoi consiste le mouvement…"
           className="field resize-none"
         />
+      </div>
+
+      <div>
+        <label className="label" htmlFor="ex-steps">
+          Comment on fait — une étape par ligne
+        </label>
+        <textarea
+          id="ex-steps"
+          value={steps}
+          onChange={(e) => setSteps(e.target.value)}
+          rows={5}
+          placeholder={"Pieds largeur d'épaules, charge contre la poitrine.\nDescends en poussant les fesses en arrière.\nRemonte en poussant dans les talons."}
+          className="field resize-none leading-relaxed"
+        />
+        <p className="mt-1 text-[11px] text-faint">
+          Affiché à l'athlète pendant la séance, sous « Comment faire ».
+        </p>
       </div>
 
       <div>

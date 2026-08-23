@@ -20,7 +20,7 @@ exercices à deux**, avec du rameur / vélo à l'échauffement. Peu de muscu iso
 | Écran | Contenu |
 |---|---|
 | **Accueil** | La prochaine séance en grand, objectif de la semaine, série de semaines, séances à rattraper |
-| **Séance** | Exercices par bloc (échauffement / principal / finisher / retour au calme), saisie poids + reps série par série, chrono de repos, consignes du coach, « comment faire » |
+| **Séance** | Exercices par bloc (échauffement / principal / finisher / retour au calme), saisie poids + reps série par série, chrono de repos, consignes du coach |
 | **Historique** | Toutes les séances terminées, par mois, avec ressenti et durée |
 | **Progression** | Records par exercice, courbes de charge et de volume, détail séance par séance |
 
@@ -28,13 +28,19 @@ Pendant la séance : sauvegarde automatique, pré-remplissage avec l'objectif du
 coach ou la dernière perf, rappel de « la dernière fois tu as fait 12 kg × 12 »,
 et un écran de félicitations à la fin.
 
+**Chaque exercice explique comment on le fait.** Un bouton « Comment faire »
+déplie le déroulé du mouvement en 3 ou 4 étapes numérotées, les points de
+vigilance, et un lien vers une vidéo de démonstration. C'est visible partout :
+pendant la séance, dans la bibliothèque, et surtout au moment où le coach
+choisit ses exercices — pratique quand on ne connaît pas encore tout.
+
 ### Côté coach
 
 | Écran | Contenu |
 |---|---|
 | **Planning** | Bandeau des 3 prochaines semaines, brouillons, séances prêtes, séances faites, modèles |
 | **Composer** | Titre, date, focus, intensité, mot du coach, puis les exercices : séries, reps, poids indicatif, repos, superset, consigne personnalisée |
-| **Bibliothèque** | 119 exercices de départ + les tiens. Recherche, filtres par catégorie et matériel, création, modification, archivage |
+| **Bibliothèque** | 119 exercices de départ + les tiens, chacun avec son pas-à-pas. Recherche, filtres par catégorie et matériel, création, modification, archivage |
 | **Suivi** | Ce qu'elle a réellement fait, ses retours, sa progression par exercice |
 | **Réglages** | Son prénom, objectif hebdo, message de motivation |
 
@@ -194,7 +200,7 @@ src/
 
 | Table | Rôle |
 |---|---|
-| `exercises` | Bibliothèque. `is_custom` distingue tes créations du fonds de départ |
+| `exercises` | Bibliothèque : description, déroulé pas-à-pas, points de vigilance. `is_custom` distingue tes créations du fonds de départ |
 | `workouts` | Une séance : date, statut (`draft` / `published` / `done`), consignes, ressenti |
 | `workout_items` | Un exercice dans une séance : bloc, séries, objectifs, repos, note |
 | `set_logs` | Une série réalisée : reps, poids, temps, distance. C'est la source de la progression |
@@ -204,7 +210,8 @@ src/
 
 ## ✏️ Personnaliser
 
-- **Ajouter des exercices** — depuis l'app (*Bibliothèque → Créer un exercice*),
+- **Ajouter des exercices** — depuis l'app (*Bibliothèque → Créer un exercice*,
+  avec un champ « Comment on fait » où tu écris une étape par ligne),
   ou en modifiant `src/lib/exercise-library.ts` puis en cliquant
   *Réglages → Base de données → Mettre à jour la bibliothèque*
   (ou `npm run db:seed` en ligne de commande).

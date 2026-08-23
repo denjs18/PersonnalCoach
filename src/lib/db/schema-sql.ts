@@ -4,6 +4,9 @@
  * Écrit sous forme d'instructions séparées et idempotentes : elles peuvent être
  * rejouées sans risque, aussi bien par `npm run db:setup` que par le bouton
  * « Installer la base » de l'espace coach (qui n'a pas accès au disque).
+ *
+ * Sert aussi de migrations : une colonne ajoutée après coup se déclare en
+ * `ALTER TABLE … ADD COLUMN IF NOT EXISTS`, juste après la table concernée.
  */
 export const SCHEMA_STATEMENTS: string[] = [
   `CREATE EXTENSION IF NOT EXISTS "pgcrypto"`,
@@ -15,12 +18,16 @@ export const SCHEMA_STATEMENTS: string[] = [
     equipment    text[] NOT NULL DEFAULT '{}',
     muscles      text[] NOT NULL DEFAULT '{}',
     description  text,
+    steps        text[] NOT NULL DEFAULT '{}',
     cues         text,
     tracking     text NOT NULL DEFAULT 'reps_weight',
     is_custom    boolean NOT NULL DEFAULT false,
     is_archived  boolean NOT NULL DEFAULT false,
     created_at   timestamptz NOT NULL DEFAULT now()
   )`,
+
+  // Migration : bases créées avant l'ajout du pas-à-pas.
+  `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS steps text[] NOT NULL DEFAULT '{}'`,
 
   `CREATE UNIQUE INDEX IF NOT EXISTS exercises_name_unique ON exercises (name)`,
   `CREATE INDEX IF NOT EXISTS exercises_category_idx ON exercises (category)`,

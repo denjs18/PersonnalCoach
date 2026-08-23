@@ -26,7 +26,9 @@ export const exercises = pgTable(
     equipment: text("equipment").array().notNull().default([]),
     muscles: text("muscles").array().notNull().default([]),
     description: text("description"),
-    /** Points techniques / conseils d'exécution */
+    /** Déroulé du mouvement, une étape par entrée */
+    steps: text("steps").array().notNull().default([]),
+    /** Points techniques / erreurs à éviter */
     cues: text("cues"),
     /** reps_weight | reps | time | distance | time_distance */
     tracking: text("tracking").notNull().default("reps_weight"),

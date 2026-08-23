@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Info, Plus, Search, Sparkles, X } from "lucide-react";
 import { CATEGORIES, CATEGORY_KEYS, EQUIPMENT, type EquipmentKey } from "@/lib/constants";
 import { createExerciseAction } from "@/lib/actions/exercises";
 import type { Exercise } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui";
+import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { ExerciseForm } from "./exercise-form";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export function ExercisePicker({
   const [category, setCategory] = useState<string | null>(null);
   const [equipment, setEquipment] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [preview, setPreview] = useState<Exercise | null>(null);
 
   const equipmentOptions = useMemo(() => {
     const used = new Set<string>();
@@ -61,8 +63,18 @@ export function ExercisePicker({
       <div className="mx-auto flex h-full w-full max-w-md flex-col">
         {/* En-tête */}
         <div className="flex items-center gap-3 border-b border-line/60 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
-          <h2 className="flex-1 text-lg font-extrabold">
-            {creating ? "Nouvel exercice" : title}
+          {preview ? (
+            <button
+              type="button"
+              onClick={() => setPreview(null)}
+              className="grid size-9 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-muted"
+              aria-label="Retour à la liste"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+          ) : null}
+          <h2 className="flex-1 truncate text-lg font-extrabold">
+            {creating ? "Nouvel exercice" : preview ? preview.name : title}
           </h2>
           <button
             type="button"
@@ -74,7 +86,37 @@ export function ExercisePicker({
           </button>
         </div>
 
-        {creating ? (
+        {preview ? (
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                <CategoryBadge category={preview.category} />
+                {preview.equipment.map((eq) => (
+                  <span key={eq} className="chip">
+                    {EQUIPMENT[eq as EquipmentKey] ?? eq}
+                  </span>
+                ))}
+              </div>
+              {preview.muscles.length > 0 ? (
+                <p className="mb-4 text-[12.5px] text-faint">
+                  Travaille : {preview.muscles.join(", ")}
+                </p>
+              ) : null}
+              <ExerciseHowTo
+                name={preview.name}
+                description={preview.description}
+                steps={preview.steps}
+                cues={preview.cues}
+              />
+            </div>
+            <div className="safe-bottom border-t border-line/60 bg-ink-2/80 px-4 pt-2.5 backdrop-blur-xl">
+              <button type="button" onClick={() => onPick(preview)} className="btn-primary w-full">
+                <Plus className="size-4" />
+                Ajouter à la séance
+              </button>
+            </div>
+          </div>
+        ) : creating ? (
           <div className="flex-1 overflow-y-auto px-4 py-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <ExerciseForm
               submitLabel="Créer et ajouter"
@@ -159,32 +201,45 @@ export function ExercisePicker({
               ) : (
                 <ul className="space-y-1.5">
                   {filtered.map((ex) => (
-                    <li key={ex.id}>
+                    <li key={ex.id} className="card card-hover flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => setPreview(ex)}
+                        className="min-w-0 flex-1 p-3 text-left"
+                        aria-label={`Voir comment faire : ${ex.name}`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <CategoryBadge category={ex.category} />
+                          {ex.isCustom ? (
+                            <span className="chip border-brand-2/40 text-brand-2">
+                              <Sparkles className="size-3" />
+                              Perso
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 truncate font-semibold leading-snug">{ex.name}</p>
+                        {ex.description ? (
+                          <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-muted">
+                            {ex.description}
+                          </p>
+                        ) : null}
+                        {ex.equipment.length > 0 ? (
+                          <p className="mt-1 truncate text-[11.5px] text-faint">
+                            {ex.equipment.map((eq) => EQUIPMENT[eq as EquipmentKey] ?? eq).join(" · ")}
+                          </p>
+                        ) : null}
+                        <span className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-brand-3">
+                          <Info className="size-3" />
+                          Comment faire
+                        </span>
+                      </button>
                       <button
                         type="button"
                         onClick={() => onPick(ex)}
-                        className="card card-hover flex w-full items-center gap-3 p-3 text-left"
+                        className="grid shrink-0 place-items-center self-stretch border-l border-line/60 px-4 text-brand transition active:scale-90"
+                        aria-label={`Ajouter ${ex.name}`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <CategoryBadge category={ex.category} />
-                            {ex.isCustom ? (
-                              <span className="chip border-brand-2/40 text-brand-2">
-                                <Sparkles className="size-3" />
-                                Perso
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="mt-1 truncate font-semibold leading-snug">{ex.name}</p>
-                          {ex.equipment.length > 0 ? (
-                            <p className="truncate text-[11.5px] text-faint">
-                              {ex.equipment
-                                .map((eq) => EQUIPMENT[eq as EquipmentKey] ?? eq)
-                                .join(" · ")}
-                            </p>
-                          ) : null}
-                        </div>
-                        <Plus className="size-5 shrink-0 text-brand" />
+                        <Plus className="size-5" />
                       </button>
                     </li>
                   ))}

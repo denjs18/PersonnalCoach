@@ -48,6 +48,7 @@ export default async function SeancePage({ params }: { params: Promise<{ id: str
     name: item.exercise.name,
     category: item.exercise.category,
     description: item.exercise.description,
+    steps: item.exercise.steps,
     cues: item.exercise.cues,
     tracking: item.tracking ?? item.exercise.tracking,
     section: item.section,

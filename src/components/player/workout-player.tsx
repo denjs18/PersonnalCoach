@@ -24,6 +24,7 @@ import {
 } from "@/lib/actions/logs";
 import { MOODS, SECTIONS, type SectionKey } from "@/lib/constants";
 import { CategoryBadge } from "@/components/ui";
+import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { RestTimer } from "./rest-timer";
 import { cn, formatDistance, formatDuration, formatWeight } from "@/lib/utils";
 
@@ -45,6 +46,7 @@ export type PlayerItemData = {
   name: string;
   category: string;
   description: string | null;
+  steps: string[];
   cues: string | null;
   tracking: string;
   section: string;
@@ -688,8 +690,8 @@ function ExerciseCard({
         ) : null}
       </div>
 
-      {/* Détails techniques */}
-      {item.description || item.cues ? (
+      {/* Comment faire */}
+      {item.description || item.steps.length > 0 || item.cues ? (
         <div className="border-t border-line/60">
           <button
             type="button"
@@ -705,15 +707,13 @@ function ExerciseCard({
             />
           </button>
           {expanded ? (
-            <div className="animate-[var(--animate-rise)] space-y-2 px-4 pb-4 text-[13px] leading-relaxed">
-              {item.description ? <p className="text-muted">{item.description}</p> : null}
-              {item.cues ? (
-                <p className="rounded-lg bg-surface-2/70 p-2.5 text-fg/80">
-                  <span className="font-semibold text-brand">Points clés — </span>
-                  {item.cues}
-                </p>
-              ) : null}
-            </div>
+            <ExerciseHowTo
+              name={item.name}
+              description={item.description}
+              steps={item.steps}
+              cues={item.cues}
+              className="animate-[var(--animate-rise)] px-4 pb-4"
+            />
           ) : null}
         </div>
       ) : null}

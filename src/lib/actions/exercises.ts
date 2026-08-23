@@ -12,6 +12,7 @@ export type ExerciseInput = {
   equipment: string[];
   muscles: string[];
   description?: string | null;
+  steps: string[];
   cues?: string | null;
   tracking: string;
 };
@@ -23,6 +24,7 @@ function clean(input: ExerciseInput): ExerciseInput {
     equipment: (input.equipment ?? []).filter(Boolean),
     muscles: (input.muscles ?? []).map((m) => m.trim()).filter(Boolean),
     description: input.description?.trim() || null,
+    steps: (input.steps ?? []).map((s) => s.trim()).filter(Boolean),
     cues: input.cues?.trim() || null,
     tracking: input.tracking || "reps_weight",
   };

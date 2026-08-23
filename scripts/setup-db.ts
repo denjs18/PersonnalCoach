@@ -75,18 +75,19 @@ async function run() {
 
   for (const ex of EXERCISE_LIBRARY) {
     const rows = (await sql.query(
-      `INSERT INTO exercises (name, category, equipment, muscles, description, cues, tracking, is_custom)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, false)
+      `INSERT INTO exercises (name, category, equipment, muscles, description, steps, cues, tracking, is_custom)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)
        ON CONFLICT (name) DO UPDATE SET
          category = EXCLUDED.category,
          equipment = EXCLUDED.equipment,
          muscles = EXCLUDED.muscles,
          description = EXCLUDED.description,
+         steps = EXCLUDED.steps,
          cues = EXCLUDED.cues,
          tracking = EXCLUDED.tracking
        WHERE exercises.is_custom = false
        RETURNING (xmax = 0) AS inserted`,
-      [ex.name, ex.category, ex.equipment, ex.muscles, ex.description, ex.cues, ex.tracking],
+      [ex.name, ex.category, ex.equipment, ex.muscles, ex.description, ex.steps, ex.cues, ex.tracking],
     )) as Array<{ inserted: boolean }>;
 
     if (rows[0]?.inserted) created++;

@@ -13,6 +13,7 @@ import {
   Copy,
   Eye,
   FileStack,
+  Info,
   Loader2,
   MoreHorizontal,
   Plus,
@@ -38,6 +39,7 @@ import {
 } from "@/lib/constants";
 import type { Exercise } from "@/lib/db";
 import { CategoryBadge, StatusBadge } from "@/components/ui";
+import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { ExercisePicker } from "./exercise-picker";
 import { addDaysISO, cn, formatDuration } from "@/lib/utils";
 
@@ -48,6 +50,9 @@ export type BuilderItem = PlanItem & {
   exerciseName: string;
   exerciseCategory: string;
   exerciseTracking: string;
+  exerciseDescription: string | null;
+  exerciseSteps: string[];
+  exerciseCues: string | null;
 };
 
 export type BuilderWorkout = {
@@ -192,6 +197,9 @@ export function WorkoutBuilder({
         exerciseName: exercise.name,
         exerciseCategory: exercise.category,
         exerciseTracking: exercise.tracking,
+        exerciseDescription: exercise.description,
+        exerciseSteps: exercise.steps,
+        exerciseCues: exercise.cues,
         section,
         sets: section === "echauffement" || section === "retour_au_calme" ? 1 : 3,
         targetReps: defaultReps(exercise.tracking, section),
@@ -655,6 +663,24 @@ function ItemEditor({
 
       {expanded ? (
         <div className="animate-[var(--animate-rise)] space-y-3.5 border-t border-line/60 p-3.5">
+          {item.exerciseSteps.length > 0 || item.exerciseDescription ? (
+            <details className="rounded-xl border border-line/70 bg-surface-2/40">
+              <summary className="cursor-pointer list-none px-3 py-2.5 text-[12px] font-semibold text-faint transition hover:text-muted">
+                <span className="inline-flex items-center gap-1.5">
+                  <Info className="size-3.5" />
+                  Comment faire cet exercice
+                </span>
+              </summary>
+              <ExerciseHowTo
+                name={item.exerciseName}
+                description={item.exerciseDescription}
+                steps={item.exerciseSteps}
+                cues={item.exerciseCues}
+                className="px-3 pb-3"
+              />
+            </details>
+          ) : null}
+
           <div className="grid grid-cols-2 gap-2.5">
             <NumField
               label="Séries"

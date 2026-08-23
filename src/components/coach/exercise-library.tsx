@@ -1,7 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Archive, ArchiveRestore, Pencil, Plus, Search, Sparkles, X } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  ChevronDown,
+  Info,
+  Pencil,
+  Plus,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react";
 import {
   createExerciseAction,
   setExerciseArchivedAction,
@@ -10,6 +20,7 @@ import {
 import { CATEGORIES, CATEGORY_KEYS, EQUIPMENT, type EquipmentKey } from "@/lib/constants";
 import type { Exercise } from "@/lib/db";
 import { CategoryBadge } from "@/components/ui";
+import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { ExerciseForm } from "./exercise-form";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +35,7 @@ export function ExerciseLibrary({ initial }: { initial: Exercise[] }) {
   const [onlyCustom, setOnlyCustom] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState<Exercise | "new" | null>(null);
+  const [opened, setOpened] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = normalize(search.trim());
@@ -129,6 +141,19 @@ export function ExerciseLibrary({ initial }: { initial: Exercise[] }) {
                 {ex.description ? (
                   <p className="mt-1.5 line-clamp-2 text-[12.5px] text-muted">{ex.description}</p>
                 ) : null}
+                {ex.steps.length > 0 || ex.cues ? (
+                  <button
+                    type="button"
+                    onClick={() => setOpened((cur) => (cur === ex.id ? null : ex.id))}
+                    className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-semibold text-brand-3"
+                  >
+                    <Info className="size-3" />
+                    Comment faire
+                    <ChevronDown
+                      className={cn("size-3 transition-transform", opened === ex.id && "rotate-180")}
+                    />
+                  </button>
+                ) : null}
               </div>
               <div className="flex shrink-0 flex-col gap-1.5">
                 <button
@@ -153,6 +178,15 @@ export function ExerciseLibrary({ initial }: { initial: Exercise[] }) {
                 </button>
               </div>
             </div>
+            {opened === ex.id ? (
+              <ExerciseHowTo
+                name={ex.name}
+                description={null}
+                steps={ex.steps}
+                cues={ex.cues}
+                className="mt-3 animate-[var(--animate-rise)] border-t border-line/60 pt-3"
+              />
+            ) : null}
           </li>
         ))}
       </ul>
