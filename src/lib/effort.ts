@@ -1,5 +1,6 @@
 import {
   DEFAULT_MET,
+  MAX_GAP_SECONDS,
   PACE_MET,
   REST_MET,
   RESTING_OVER_BASAL,
@@ -143,6 +144,26 @@ export function estimateWorkSeconds(entries: EffortEntry[]): number {
   return Math.max(0, Math.round(seconds));
 }
 
+/**
+ * Durée réelle d'une séance, mesurée entre la première et la dernière série
+ * validées. Les intervalles anormalement longs (téléphone posé, sortie de la
+ * salle) sont plafonnés : ouvrir l'app en avance ou reprendre le lendemain
+ * n'a aucun effet.
+ */
+export function measuredWorkSeconds(
+  validationTimes: number[],
+  firstSetEffortSeconds = 40,
+): number | null {
+  const times = [...validationTimes].sort((a, b) => a - b);
+  if (times.length < 2) return null;
+
+  let seconds = firstSetEffortSeconds;
+  for (let i = 1; i < times.length; i++) {
+    seconds += Math.min((times[i] - times[i - 1]) / 1000, MAX_GAP_SECONDS);
+  }
+  return Math.round(seconds);
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Estimation des calories                                                   */
 /* -------------------------------------------------------------------------- */
@@ -183,8 +204,8 @@ function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): numbe
 }
 
 /**
- * Calories d'une série (effort + repos qui suit), ou null si le profil de
- * l'athlète n'est pas renseigné.
+ * Calories d'une série : l'effort, plus le repos qui la suit. Sert à ventiler
+ * la dépense exercice par exercice pendant la séance.
  */
 export function setCalories(
   item: EffortItem,
@@ -201,10 +222,25 @@ export function setCalories(
   return metOf(item, set, profile) * perMinute * effortMin + REST_MET * perMinute * restMin;
 }
 
-/** Calories d'un lot de séries. null si le profil est incomplet. */
+/** Somme des durées d'effort pur, hors repos, en secondes. */
+export function totalEffortSeconds(entries: EffortEntry[]): number {
+  return entries
+    .filter((e) => e.set.done)
+    .reduce((acc, { item, set }) => acc + setEffortSeconds(item, set), 0);
+}
+
+/**
+ * Calories d'une séance. null si le profil est incomplet.
+ *
+ * `actualSeconds` est la durée réelle de la séance quand on la connaît : le
+ * temps qui n'est pas de l'effort est alors compté en récupération. Sans elle,
+ * on retombe sur les repos prévus par le coach, ce qui sous-estime les séances
+ * où l'on prend son temps.
+ */
 export function estimateCalories(
   entries: EffortEntry[],
   profile: AthleteProfile,
+  actualSeconds?: number | null,
 ): number | null {
   if (!isProfileComplete(profile)) return null;
 
@@ -213,15 +249,20 @@ export function estimateCalories(
 
   const perMinute = restingKcalPerMinute(profile) ?? 0;
 
+  // L'effort lui-même, au coût propre de chaque exercice.
   let total = 0;
-  done.forEach(({ item, set }, index) => {
-    const isLast = index === done.length - 1;
-    total += setCalories(item, set, profile, !isLast) ?? 0;
-  });
+  for (const { item, set } of done) {
+    total += (metOf(item, set, profile) * perMinute * setEffortSeconds(item, set)) / 60;
+  }
 
-  // Les transitions entre exercices, à coût faible.
-  const exerciseCount = new Set(done.map((e) => e.item.id)).size;
-  total += (REST_MET * perMinute * Math.max(0, exerciseCount - 1) * TRANSITION_SECONDS) / 60;
+  // Tout le reste de la séance : récupération entre les séries et transitions.
+  const effortSeconds = totalEffortSeconds(done);
+  const sessionSeconds =
+    actualSeconds && actualSeconds > effortSeconds
+      ? actualSeconds
+      : estimateWorkSeconds(done);
+  const recoverySeconds = Math.max(0, sessionSeconds - effortSeconds);
+  total += (REST_MET * perMinute * recoverySeconds) / 60;
 
   return Math.round(total);
 }

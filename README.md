@@ -55,15 +55,16 @@ Une séance reste invisible pour elle tant qu'elle est en **brouillon**. Un bout
 
 ## ⏱️ Durée et calories : comment c'est calculé
 
-**La durée n'est pas un chronomètre.** Ouvrir la séance en avance, la laisser
-tourner pendant une pause ou reprendre le lendemain ne change rien : le temps
-est reconstruit à partir des séries réellement validées — durée de l'effort
-(temps noté, ou répétitions × durée moyenne d'une rep selon la famille
-d'exercices), plus le repos prévu entre les séries, plus le temps de mise en
-place entre deux exercices.
+**La durée n'est pas un chronomètre.** Ouvrir la séance en avance ou la laisser
+tourner pendant une pause ne change rien : le temps est mesuré entre la
+première et la dernière série validée, et les intervalles anormalement longs
+(téléphone posé, sortie de la salle) sont plafonnés. Si les séries ont été
+cochées d'un bloc à la fin, on retombe sur une estimation calculée à partir
+d'elles — durée d'effort, repos prévus, temps de mise en place.
 
-C'est un **temps de travail**, pas un temps de présence à la salle : les
-discussions, l'attente d'une machine ou le passage au vestiaire n'y sont pas.
+À la fin de la séance, **la durée est proposée et reste modifiable** : c'est
+elle qui donne les calories, et personne ne connaît mieux le temps passé que
+celle qui vient de s'entraîner.
 
 **Les calories sont une estimation**, calculée avec :
 
@@ -76,13 +77,17 @@ discussions, l'attente d'une machine ou le passage au vestiaire n'y sont pas.
 - pour le rameur, le vélo et la course, **l'allure réellement tenue** quand la
   distance et la durée sont notées toutes les deux : 10 minutes tranquilles et
   10 minutes à fond ne comptent pas pareil ;
-- la **durée d'effort** ci-dessus, le repos et les transitions entre exercices
-  étant comptés à un coût faible ;
+- la **durée de la séance** : le temps qui n'est pas de l'effort est compté en
+  récupération, à 2,8 MET — entre deux séries on ne se repose pas assis, le
+  cœur et la respiration redescendent lentement. C'est pour ça qu'une séance
+  où l'on prend son temps dépense plus qu'une séance expédiée ;
 - une **majoration selon la charge** soulevée, rapportée au poids de corps.
 
 Comme toute estimation de dépense énergétique, l'ordre de grandeur est fiable
 mais le chiffre exact ne l'est pas : à prendre comme un repère de progression,
-pas comme une mesure.
+pas comme une mesure. Les estimations tournent volontairement dans la
+fourchette basse de ce qu'affichent les machines de salle, qui ne déduisent pas
+le métabolisme de base.
 
 ---
 

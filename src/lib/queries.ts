@@ -170,7 +170,9 @@ async function summarize(list: Workout[]): Promise<WorkoutSummary[]> {
       ...w,
       exerciseCount: countMap.get(w.id) ?? 0,
       loggedSets: logMap.get(w.id) ?? 0,
-      calories: entries ? estimateCalories(entries, profile) : null,
+      calories: entries
+        ? estimateCalories(entries, profile, w.durationMinutes ? w.durationMinutes * 60 : null)
+        : null,
     };
   });
 }
@@ -297,9 +299,12 @@ export async function getStats(): Promise<Stats> {
   let totalCalories: number | null = null;
   if (isProfileComplete(profile) && done.length > 0) {
     const effort = await effortEntriesByWorkout(done.map((w) => w.id));
+    const durations = new Map(done.map((w) => [w.id, w.durationMinutes]));
     totalCalories = 0;
-    for (const entries of effort.values()) {
-      totalCalories += estimateCalories(entries, profile) ?? 0;
+    for (const [workoutId, entries] of effort) {
+      const minutes = durations.get(workoutId);
+      totalCalories +=
+        estimateCalories(entries, profile, minutes ? minutes * 60 : null) ?? 0;
     }
   }
 

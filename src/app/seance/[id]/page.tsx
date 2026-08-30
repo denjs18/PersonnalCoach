@@ -76,6 +76,7 @@ export default async function SeancePage({ params }: { params: Promise<{ id: str
         distanceM: log.distanceM,
         rpe: log.rpe,
         done: log.done,
+        loggedAt: log.loggedAt ? log.loggedAt.toISOString() : null,
       })),
     last: lastPerfs.get(item.exerciseId) ?? null,
   }));

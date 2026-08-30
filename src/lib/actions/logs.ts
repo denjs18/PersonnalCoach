@@ -78,7 +78,9 @@ export async function saveSetLogsAction(workoutId: string, entries: SetEntry[]) 
         rpe: sql`excluded.rpe`,
         done: sql`excluded.done`,
         performedOn: sql`excluded.performed_on`,
-        loggedAt: sql`now()`,
+        // On garde l'heure de la première validation : c'est elle qui permet
+        // de reconstituer la durée réelle de la séance.
+        loggedAt: sql`case when ${setLogs.done} and excluded.done then ${setLogs.loggedAt} else now() end`,
       },
     });
 

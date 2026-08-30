@@ -29,6 +29,7 @@ import {
   estimateCalories,
   estimateWorkSeconds,
   isProfileComplete,
+  measuredWorkSeconds,
   setCalories,
   type AthleteProfile,
   type EffortEntry,
@@ -43,6 +44,8 @@ import { cn, formatDistance, formatDuration, formatWeight } from "@/lib/utils";
 
 export type SetState = {
   setNumber: number;
+  /** Heure de la première validation, telle que conservée en base. */
+  loggedAt?: string | null;
   reps: number | null;
   weightKg: number | null;
   timeSec: number | null;
@@ -290,6 +293,19 @@ export function WorkoutPlayer({
     return initial;
   });
 
+  /** Heure de validation de chaque série : sert à mesurer la vraie durée. */
+  const [validatedAt, setValidatedAt] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
+    for (const item of items) {
+      for (const log of item.initialLogs) {
+        if (log.done && log.loggedAt) {
+          initial[`${item.id}:${log.setNumber}`] = new Date(log.loggedAt).getTime();
+        }
+      }
+    }
+    return initial;
+  });
+
   const [expanded, setExpanded] = useState<string | null>(null);
   const [rest, setRest] = useState<{ seconds: number; label: string; key: number } | null>(null);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -397,6 +413,16 @@ export function WorkoutPlayer({
       }
     }
 
+    const key = `${item.id}:${setNumber}`;
+    setValidatedAt((prev) => {
+      if (!nextDone) {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return prev[key] ? prev : { ...prev, [key]: Date.now() };
+    });
+
     patchSet(item.id, setNumber, patch);
 
     if (nextDone) {
@@ -457,14 +483,21 @@ export function WorkoutPlayer({
       }
     }
 
+    const estimated = estimateWorkSeconds(entries);
+    const measured = measuredWorkSeconds(Object.values(validatedAt));
+    // La mesure ne vaut que si elle dépasse l'estimation : sinon c'est que les
+    // séries ont été cochées d'un bloc à la fin.
+    const seconds = measured && measured > estimated ? measured : estimated;
+
     return {
       total,
       done,
       volume,
-      seconds: estimateWorkSeconds(entries),
-      calories: estimateCalories(entries, profile),
+      seconds,
+      measured,
+      calories: estimateCalories(entries, profile, seconds),
     };
-  }, [items, state, profile]);
+  }, [items, state, profile, validatedAt]);
 
   /** Calories par exercice, pour l'afficher sur sa carte. */
   const caloriesByItem = useMemo(() => {
@@ -493,16 +526,21 @@ export function WorkoutPlayer({
     );
   }, [items]);
 
-  const finish = async (rating: number | null, note: string) => {
+  const finish = async (rating: number | null, note: string, minutes: number) => {
     await flush();
-    const minutes = Math.max(1, Math.round(totals.seconds / 60));
     await finishWorkoutAction(workout.id, { rating, note, durationMinutes: minutes });
     setShowFinish(false);
     setCelebration({
       sets: totals.done,
       volume: Math.round(totals.volume),
       minutes,
-      calories: totals.calories,
+      calories: estimateCalories(
+        items.flatMap((item) =>
+          (state[item.id] ?? []).map((set) => ({ item: toEffortItem(item), set })),
+        ),
+        profile,
+        minutes * 60,
+      ),
     });
     navigator.vibrate?.([40, 60, 40, 60, 120]);
   };
@@ -660,6 +698,10 @@ export function WorkoutPlayer({
           volume={Math.round(totals.volume)}
           minutes={Math.max(1, Math.round(totals.seconds / 60))}
           calories={totals.calories}
+          entries={items.flatMap((item) =>
+            (state[item.id] ?? []).map((set) => ({ item: toEffortItem(item), set })),
+          )}
+          profile={profile}
           onCancel={() => setShowFinish(false)}
           onConfirm={finish}
         />
@@ -978,6 +1020,8 @@ function FinishSheet({
   volume,
   minutes,
   calories,
+  entries,
+  profile,
   onCancel,
   onConfirm,
 }: {
@@ -986,12 +1030,18 @@ function FinishSheet({
   volume: number;
   minutes: number;
   calories: number | null;
+  entries: EffortEntry[];
+  profile: AthleteProfile;
   onCancel: () => void;
-  onConfirm: (rating: number | null, note: string) => Promise<void>;
+  onConfirm: (rating: number | null, note: string, minutes: number) => Promise<void>;
 }) {
   const [rating, setRating] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [pending, setPending] = useState(false);
+  const [duration, setDuration] = useState(String(minutes));
+
+  const durationMinutes = Math.max(1, Number(duration.replace(/\D/g, "")) || minutes);
+  const liveCalories = estimateCalories(entries, profile, durationMinutes * 60);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
@@ -999,10 +1049,36 @@ function FinishSheet({
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-surface-3" />
         <h2 className="text-xl font-extrabold">Séance terminée ?</h2>
         <p className="mt-1 text-sm text-muted">
-          {done}/{total} séries · ~{formatDuration(minutes * 60)}
-          {calories ? ` · ~${calories} kcal` : ""}
+          {done}/{total} séries
           {volume > 0 ? ` · ${volume.toLocaleString("fr-FR")} kg soulevés` : ""}
         </p>
+
+        <div className="mt-4 rounded-xl border border-line/70 bg-surface-2/40 p-3.5">
+          <label className="label" htmlFor="finish-duration">
+            Combien de temps a duré la séance ?
+          </label>
+          <div className="flex items-center gap-2.5">
+            <input
+              id="finish-duration"
+              type="text"
+              inputMode="numeric"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              onFocus={(e) => e.currentTarget.select()}
+              className="field w-24 text-center text-lg font-bold tabular-nums"
+            />
+            <span className="text-sm font-semibold text-muted">minutes</span>
+            {liveCalories !== null ? (
+              <span className="ml-auto inline-flex items-center gap-1 text-sm font-bold text-warn">
+                <Flame className="size-4" />~{liveCalories} kcal
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1.5 text-[11.5px] leading-relaxed text-faint">
+            Estimé d'après tes séries. Corrige si tu as pris plus ou moins de temps :
+            les calories suivent.
+          </p>
+        </div>
 
         <p className="label mt-5">Comment tu te sens ?</p>
         <div className="flex gap-1.5">
@@ -1046,7 +1122,7 @@ function FinishSheet({
             onClick={async () => {
               setPending(true);
               try {
-                await onConfirm(rating, note);
+                await onConfirm(rating, note, durationMinutes);
               } finally {
                 setPending(false);
               }

@@ -88,8 +88,18 @@ export const DEFAULT_MET: Record<CategoryKey, number> = {
   mobilite: 2.3,
 };
 
-/** Coût pendant les temps de repos entre les séries. */
-export const REST_MET = 2;
+/**
+ * Coût pendant les temps de repos entre les séries. Ce n'est pas du repos
+ * assis : on récupère d'un effort, le cœur et la respiration redescendent
+ * lentement. Les mesures de dépense en récupération donnent 2,5 à 3,5 MET.
+ */
+export const REST_MET = 2.8;
+
+/**
+ * Au-delà, on considère que la séance a été interrompue (téléphone posé,
+ * discussion, sortie de la salle) et on ne compte pas tout l'intervalle.
+ */
+export const MAX_GAP_SECONDS = 600;
 
 /** Mise en place, changement de charge, déplacement entre deux exercices. */
 export const TRANSITION_SECONDS = 45;
