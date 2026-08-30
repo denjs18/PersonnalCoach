@@ -24,6 +24,7 @@ import {
 import {
   deleteWorkoutAction,
   duplicateWorkoutAction,
+  reopenWorkoutAction,
   saveAsTemplateAction,
   saveWorkoutPlanAction,
   setWorkoutStatusAction,
@@ -41,6 +42,8 @@ import type { Exercise } from "@/lib/db";
 import { CategoryBadge, StatusBadge } from "@/components/ui";
 import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { ExercisePicker } from "./exercise-picker";
+import { SessionResult } from "./session-result";
+import type { AthleteProfile, EffortEntry } from "@/lib/effort";
 import { addDaysISO, cn, formatDuration } from "@/lib/utils";
 
 /* -------------------------------- Types ---------------------------------- */
@@ -58,6 +61,9 @@ export type BuilderItem = PlanItem & {
 export type BuilderWorkout = {
   id: string;
   title: string;
+  durationMinutes: number | null;
+  athleteRating: number | null;
+  athleteNote: string | null;
   scheduledFor: string | null;
   status: string;
   isTemplate: boolean;
@@ -79,10 +85,14 @@ export function WorkoutBuilder({
   workout,
   initialItems,
   exercises: initialExercises,
+  effortEntries,
+  profile,
 }: {
   workout: BuilderWorkout;
   initialItems: BuilderItem[];
   exercises: Exercise[];
+  effortEntries: EffortEntry[];
+  profile: AthleteProfile;
 }) {
   const router = useRouter();
 
@@ -293,6 +303,18 @@ export function WorkoutBuilder({
     }
   };
 
+  const reopen = async () => {
+    setBusy(true);
+    try {
+      await reopenWorkoutAction(workout.id);
+      setStatus("published");
+      router.refresh();
+      setMenuOpen(false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const remove = async () => {
     if (!confirm("Supprimer définitivement cette séance ?")) return;
     setBusy(true);
@@ -389,6 +411,18 @@ export function WorkoutBuilder({
           </div>
         </div>
       </header>
+
+      {status === "done" ? (
+        <SessionResult
+          workoutId={workout.id}
+          initialMinutes={workout.durationMinutes}
+          initialRating={workout.athleteRating}
+          initialNote={workout.athleteNote}
+          entries={effortEntries}
+          profile={profile}
+          loggedSets={workout.loggedSets}
+        />
+      ) : null}
 
       {workout.loggedSets > 0 && status !== "done" ? (
         <p className="card mb-4 border-warn/30 bg-warn/10 p-3 text-[12.5px] text-warn">
@@ -581,21 +615,29 @@ export function WorkoutBuilder({
             <Check className="size-4" />
             Enregistrer
           </button>
-          <button
-            type="button"
-            onClick={publish}
-            disabled={busy || items.length === 0}
-            className={cn("flex-[1.5]", status === "published" ? "btn-ghost" : "btn-primary")}
-          >
-            {busy ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : status === "published" ? (
-              <Undo2 className="size-4" />
-            ) : (
-              <Send className="size-4" />
-            )}
-            {status === "published" ? "Repasser en brouillon" : "Publier pour elle"}
-          </button>
+          {/* Une séance déjà faite ne se republie pas : elle se rouvre, depuis le menu. */}
+          {status === "done" ? (
+            <button type="button" onClick={reopen} disabled={busy} className="btn-ghost flex-[1.5]">
+              {busy ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />}
+              Rouvrir pour la refaire
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={publish}
+              disabled={busy || items.length === 0}
+              className={cn("flex-[1.5]", status === "published" ? "btn-ghost" : "btn-primary")}
+            >
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : status === "published" ? (
+                <Undo2 className="size-4" />
+              ) : (
+                <Send className="size-4" />
+              )}
+              {status === "published" ? "Repasser en brouillon" : "Publier pour elle"}
+            </button>
+          )}
         </div>
       </div>
 

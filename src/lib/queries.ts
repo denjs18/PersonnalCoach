@@ -85,6 +85,10 @@ export type WorkoutSummary = Workout & {
  * par le calcul d'effort. Permet d'estimer durée et calories pour n'importe
  * quelle séance, y compris celles terminées avant l'ajout de la fonction.
  */
+export async function getWorkoutEffortEntries(workoutId: string): Promise<EffortEntry[]> {
+  return (await effortEntriesByWorkout([workoutId])).get(workoutId) ?? [];
+}
+
 async function effortEntriesByWorkout(
   workoutIds: string[],
 ): Promise<Map<string, EffortEntry[]>> {

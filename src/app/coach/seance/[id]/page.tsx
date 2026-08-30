@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireCoach } from "@/lib/auth";
-import { getFullWorkout, listExercises } from "@/lib/queries";
+import { getFullWorkout, getSettings, getWorkoutEffortEntries, listExercises } from "@/lib/queries";
+import { readProfile } from "@/lib/effort";
 import { countLoggedSets } from "@/lib/actions/workouts";
 import { WorkoutBuilder, type BuilderItem } from "@/components/coach/workout-builder";
 
@@ -13,7 +14,11 @@ export default async function CoachWorkoutPage({ params }: { params: Promise<{ i
   const [workout, exercises] = await Promise.all([getFullWorkout(id), listExercises()]);
   if (!workout) notFound();
 
-  const loggedSets = await countLoggedSets(id);
+  const [loggedSets, effortEntries, settings] = await Promise.all([
+    countLoggedSets(id),
+    getWorkoutEffortEntries(id),
+    getSettings(),
+  ]);
 
   const items: BuilderItem[] = workout.items.map((item) => ({
     key: item.id,
@@ -42,6 +47,9 @@ export default async function CoachWorkoutPage({ params }: { params: Promise<{ i
       workout={{
         id: workout.id,
         title: workout.title,
+        durationMinutes: workout.durationMinutes,
+        athleteRating: workout.athleteRating,
+        athleteNote: workout.athleteNote,
         scheduledFor: workout.scheduledFor,
         status: workout.status,
         isTemplate: workout.isTemplate,
@@ -53,6 +61,8 @@ export default async function CoachWorkoutPage({ params }: { params: Promise<{ i
       }}
       initialItems={items}
       exercises={exercises}
+      effortEntries={effortEntries}
+      profile={readProfile(settings)}
     />
   );
 }

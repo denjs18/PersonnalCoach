@@ -43,7 +43,7 @@ choisit ses exercices — pratique quand on ne connaît pas encore tout.
 | Écran | Contenu |
 |---|---|
 | **Planning** | Bandeau des 3 prochaines semaines, brouillons, séances prêtes, séances faites, modèles |
-| **Composer** | Titre, date, focus, intensité, mot du coach, puis les exercices : séries, reps, poids indicatif, repos, superset, consigne personnalisée |
+| **Composer** | Titre, date, focus, intensité, mot du coach, puis les exercices : séries, reps, poids indicatif, repos, superset, consigne personnalisée. Sur une séance déjà faite : correction de la durée, du ressenti et de la note |
 | **Bibliothèque** | 119 exercices de départ + les tiens, chacun avec son pas-à-pas. Recherche, filtres par catégorie et matériel, création, modification, archivage |
 | **Suivi** | Ce qu'elle a réellement fait, ses retours, sa progression par exercice |
 | **Réglages** | Son prénom, objectif hebdo, message de motivation, profil physique pour les calories |
@@ -64,7 +64,9 @@ d'elles — durée d'effort, repos prévus, temps de mise en place.
 
 À la fin de la séance, **la durée est proposée et reste modifiable** : c'est
 elle qui donne les calories, et personne ne connaît mieux le temps passé que
-celle qui vient de s'entraîner.
+celle qui vient de s'entraîner. Le coach peut la corriger après coup, en
+rouvrant la séance depuis son planning — un bloc *Séance réalisée* apparaît en
+tête, avec la durée, le ressenti et le mot de l'athlète.
 
 **Les calories sont une estimation**, calculée avec :
 

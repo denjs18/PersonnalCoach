@@ -246,6 +246,32 @@ export async function deleteWorkoutAction(workoutId: string) {
   return { ok: true as const };
 }
 
+/**
+ * Corrige ce qui a été enregistré à la fin d'une séance. La durée n'est
+ * connue de personne mieux que de celle qui s'est entraînée — et le coach doit
+ * pouvoir la rectifier après coup.
+ */
+export async function updateWorkoutResultAction(
+  workoutId: string,
+  payload: { durationMinutes: number | null; athleteRating: number | null; athleteNote: string | null },
+) {
+  await requireCoach();
+
+  await db
+    .update(workouts)
+    .set({
+      durationMinutes:
+        payload.durationMinutes === null ? null : Math.max(1, Math.round(payload.durationMinutes)),
+      athleteRating: payload.athleteRating,
+      athleteNote: payload.athleteNote?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(workouts.id, workoutId));
+
+  revalidatePath("/", "layout");
+  return { ok: true as const };
+}
+
 /** Le coach peut rouvrir une séance déjà validée (erreur de manip). */
 export async function reopenWorkoutAction(workoutId: string) {
   await requireCoach();
