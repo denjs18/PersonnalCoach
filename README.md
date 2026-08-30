@@ -59,21 +59,26 @@ Une séance reste invisible pour elle tant qu'elle est en **brouillon**. Un bout
 tourner pendant une pause ou reprendre le lendemain ne change rien : le temps
 est reconstruit à partir des séries réellement validées — durée de l'effort
 (temps noté, ou répétitions × durée moyenne d'une rep selon la famille
-d'exercices) plus le repos prévu entre les séries.
+d'exercices), plus le repos prévu entre les séries, plus le temps de mise en
+place entre deux exercices.
+
+C'est un **temps de travail**, pas un temps de présence à la salle : les
+discussions, l'attente d'une machine ou le passage au vestiaire n'y sont pas.
 
 **Les calories sont une estimation**, calculée avec :
 
-- le **métabolisme de repos** (formule de Mifflin-St Jeor), à partir du sexe, de
-  la taille, du poids et de l'âge renseignés dans *Réglages* ;
+- le **métabolisme de repos**, dérivé de la formule de Mifflin-St Jeor à partir
+  du sexe, de la taille, du poids et de l'âge renseignés dans *Réglages*
+  (majoré de 15 % : la formule donne le métabolisme basal, mesuré couché, alors
+  qu'un MET correspond au repos assis) ;
 - le **coût énergétique de l'exercice** en MET, propre à chaque mouvement
   (un swing kettlebell à 9,8 ne coûte pas la même chose qu'un étirement à 2,3) ;
-- la **durée d'effort** ci-dessus, le repos étant compté à un coût faible ;
+- pour le rameur, le vélo et la course, **l'allure réellement tenue** quand la
+  distance et la durée sont notées toutes les deux : 10 minutes tranquilles et
+  10 minutes à fond ne comptent pas pareil ;
+- la **durée d'effort** ci-dessus, le repos et les transitions entre exercices
+  étant comptés à un coût faible ;
 - une **majoration selon la charge** soulevée, rapportée au poids de corps.
-
-Tant que sexe, taille et poids ne sont pas renseignés, aucune calorie n'est
-affichée — plutôt que d'inventer un chiffre. Dès qu'ils le sont, **toutes les
-séances déjà faites affichent leurs calories** : rien n'est figé en base, tout
-est recalculé à l'affichage. Changer de poids met donc aussi le passé à jour.
 
 Comme toute estimation de dépense énergétique, l'ordre de grandeur est fiable
 mais le chiffre exact ne l'est pas : à prendre comme un repère de progression,

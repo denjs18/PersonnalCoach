@@ -91,6 +91,52 @@ export const DEFAULT_MET: Record<CategoryKey, number> = {
 /** Coût pendant les temps de repos entre les séries. */
 export const REST_MET = 2;
 
+/** Mise en place, changement de charge, déplacement entre deux exercices. */
+export const TRANSITION_SECONDS = 45;
+
+/**
+ * Un MET vaut la dépense au repos *assis*, environ 15 % au-dessus du
+ * métabolisme basal que donne la formule de Mifflin-St Jeor (mesuré couché,
+ * à jeun). Sans cette correction, l'estimation est systématiquement trop basse.
+ */
+export const RESTING_OVER_BASAL = 1.15;
+
+/**
+ * Sur un rameur, un vélo ou en course, le coût dépend surtout de l'allure :
+ * 10 minutes tranquilles et 10 minutes à fond n'ont rien à voir. Quand la
+ * distance et la durée sont notées toutes les deux, on déduit le MET de la
+ * vitesse (en mètres par minute) plutôt que d'utiliser celui de l'exercice.
+ */
+export const PACE_MET: Record<string, Array<[maxMetersPerMinute: number, met: number]>> = {
+  // Rameur : les paliers suivent la puissance développée (P ≈ 2,8 / allure³),
+  // 190 m/min ≈ 2:38 au 500 m ≈ 90 W.
+  rameur: [
+    [150, 4],
+    [170, 5],
+    [195, 6.5],
+    [215, 8],
+    [235, 10],
+    [Infinity, 12],
+  ],
+  // Vélo : paliers classiques, de 15 à 30 km/h.
+  velo: [
+    [250, 4],
+    [330, 6],
+    [415, 8],
+    [500, 10],
+    [Infinity, 12],
+  ],
+  // Marche puis course, de 5 à plus de 11 km/h.
+  course: [
+    [90, 3.5],
+    [107, 6],
+    [134, 8.3],
+    [161, 9.8],
+    [188, 11],
+    [Infinity, 12.8],
+  ],
+};
+
 /** Durée moyenne d'une répétition, selon la famille d'exercices (secondes). */
 export const SECONDS_PER_REP: Record<CategoryKey, number> = {
   echauffement: 2.5,

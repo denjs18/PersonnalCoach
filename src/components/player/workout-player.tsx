@@ -56,6 +56,7 @@ export type PlayerItemData = {
   exerciseId: string;
   name: string;
   category: string;
+  equipment: string[];
   description: string | null;
   steps: string[];
   cues: string | null;
@@ -94,29 +95,89 @@ export type PlayerWorkout = {
 
 /* --------------------------- Champs de saisie ----------------------------- */
 
-function parseTime(input: string): number | null {
-  const raw = input.trim();
-  if (!raw) return null;
-  if (raw.includes(":")) {
-    const [m, s] = raw.split(":");
-    const minutes = Number(m) || 0;
-    const seconds = Number(s) || 0;
-    return minutes * 60 + seconds;
-  }
-  const n = Number(raw.replace(",", "."));
-  return Number.isFinite(n) ? Math.round(n) : null;
-}
-
-function displayTime(value: number | null): string {
-  if (value === null) return "";
-  const m = Math.floor(value / 60);
-  const s = value % 60;
-  return m > 0 ? `${m}:${String(s).padStart(2, "0")}` : String(s);
-}
-
 /** 12.5 -> "12,5" : c'est ce qu'on tape sur un clavier français. */
 function displayNumber(value: number | null): string {
   return value === null ? "" : String(value).replace(".", ",");
+}
+
+/**
+ * Durée en deux champs distincts. Un champ unique était piégeux : taper « 10 »
+ * pour 10 minutes de rameur enregistrait 10 secondes.
+ */
+function DurationField({
+  value,
+  onChange,
+  disabled,
+  hintSeconds,
+  context,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  disabled?: boolean;
+  hintSeconds: number | null;
+  context: string;
+}) {
+  const minutes = value === null ? "" : String(Math.floor(value / 60));
+  const seconds = value === null ? "" : String(value % 60).padStart(2, "0");
+
+  const [minText, setMinText] = useState(minutes);
+  const [secText, setSecText] = useState(seconds);
+
+  useEffect(() => {
+    setMinText(minutes);
+    setSecText(seconds);
+  }, [minutes, seconds]);
+
+  const commit = (rawMin: string, rawSec: string) => {
+    const m = Number(rawMin.replace(/\D/g, ""));
+    const sc = Number(rawSec.replace(/\D/g, ""));
+    if (!rawMin.trim() && !rawSec.trim()) return onChange(null);
+    onChange((Number.isFinite(m) ? m : 0) * 60 + (Number.isFinite(sc) ? sc : 0));
+  };
+
+  const hint = {
+    min: hintSeconds !== null ? String(Math.floor(hintSeconds / 60)) : "0",
+    sec: hintSeconds !== null ? String(hintSeconds % 60).padStart(2, "0") : "00",
+  };
+
+  const field =
+    "min-w-0 flex-1 rounded-lg border border-line bg-ink-2 px-1 py-1.5 text-center text-[15px] font-bold tabular-nums outline-none transition placeholder:font-medium placeholder:text-faint/60 focus:border-brand/70 focus:ring-2 focus:ring-brand/20 disabled:opacity-60";
+
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-1">
+      <input
+        type="text"
+        aria-label={`Minutes — ${context}`}
+        inputMode="numeric"
+        disabled={disabled}
+        value={minText}
+        placeholder={hint.min}
+        onChange={(e) => setMinText(e.target.value)}
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={(e) => commit(e.target.value, secText)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className={field}
+      />
+      <span className="shrink-0 text-[13px] font-bold text-faint">:</span>
+      <input
+        type="text"
+        aria-label={`Secondes — ${context}`}
+        inputMode="numeric"
+        disabled={disabled}
+        value={secText}
+        placeholder={hint.sec}
+        onChange={(e) => setSecText(e.target.value)}
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={(e) => commit(minText, e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className={field}
+      />
+    </div>
+  );
 }
 
 function Stepper({
@@ -124,7 +185,6 @@ function Stepper({
   onChange,
   step,
   placeholder,
-  mode = "number",
   disabled,
   ariaLabel,
 }: {
@@ -132,18 +192,16 @@ function Stepper({
   onChange: (v: number | null) => void;
   step: number;
   placeholder: string;
-  mode?: "number" | "time";
   disabled?: boolean;
   ariaLabel: string;
 }) {
-  const [text, setText] = useState(() => (mode === "time" ? displayTime(value) : displayNumber(value)));
+  const [text, setText] = useState(() => displayNumber(value));
 
   useEffect(() => {
-    setText(mode === "time" ? displayTime(value) : displayNumber(value));
-  }, [value, mode]);
+    setText(displayNumber(value));
+  }, [value]);
 
   const commit = (raw: string) => {
-    if (mode === "time") return onChange(parseTime(raw));
     const cleaned = raw.replace(",", ".").trim();
     if (!cleaned) return onChange(null);
     const n = Number(cleaned);
@@ -171,7 +229,7 @@ function Stepper({
       <input
         type="text"
         aria-label={ariaLabel}
-        inputMode={mode === "time" ? "text" : "decimal"}
+        inputMode="decimal"
         disabled={disabled}
         value={String(text)}
         placeholder={placeholder}
@@ -790,7 +848,7 @@ function SetHeader({ tracking }: { tracking: string }) {
   const units: string[] = [];
   if (needsReps(tracking)) units.push("reps");
   if (needsWeight(tracking)) units.push("kg");
-  if (needsTime(tracking)) units.push("min:s");
+  if (needsTime(tracking)) units.push("min : sec");
   if (needsDistance(tracking)) units.push("mètres");
 
   return (
@@ -833,7 +891,6 @@ function SetRow({
   const hint = {
     reps: targets.targetReps ?? "—",
     weight: targets.targetWeight !== null ? displayNumber(targets.targetWeight) : "—",
-    time: targets.targetTimeSec !== null ? displayTime(targets.targetTimeSec) : "—",
     distance: targets.targetDistanceM !== null ? String(targets.targetDistanceM) : "—",
   };
   return (
@@ -874,14 +931,12 @@ function SetRow({
           />
         ) : null}
         {needsTime(tracking) ? (
-          <Stepper
+          <DurationField
             value={set.timeSec}
             onChange={(v) => onPatch({ timeSec: v })}
-            step={10}
-            placeholder={hint.time}
-            mode="time"
             disabled={readOnly}
-            ariaLabel={`Durée — ${context}`}
+            hintSeconds={targets.targetTimeSec}
+            context={context}
           />
         ) : null}
         {needsDistance(tracking) ? (
@@ -1114,6 +1169,7 @@ function toEffortItem(item: PlayerItemData): EffortItem {
     id: item.id,
     category: item.category,
     met: item.met,
+    equipment: item.equipment,
     restSec: item.restSec,
     targetTimeSec: item.targetTimeSec,
     targetReps: item.targetReps,

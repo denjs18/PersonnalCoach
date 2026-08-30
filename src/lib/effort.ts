@@ -1,7 +1,10 @@
 import {
   DEFAULT_MET,
+  PACE_MET,
   REST_MET,
+  RESTING_OVER_BASAL,
   SECONDS_PER_REP,
+  TRANSITION_SECONDS,
   type CategoryKey,
 } from "./constants";
 
@@ -47,10 +50,14 @@ export function basalMetabolicRate(p: AthleteProfile): number | null {
   return p.sex === "homme" ? base + 5 : base - 161;
 }
 
-/** Dépense au repos, en kcal par minute. */
+/**
+ * Coût d'un MET pour cette personne, en kcal par minute.
+ * Mifflin-St Jeor donne le métabolisme *basal* ; un MET correspond au repos
+ * assis, un cran au-dessus.
+ */
 function restingKcalPerMinute(p: AthleteProfile): number | null {
   const bmr = basalMetabolicRate(p);
-  return bmr === null ? null : bmr / 1440;
+  return bmr === null ? null : (bmr * RESTING_OVER_BASAL) / 1440;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -61,6 +68,8 @@ export type EffortItem = {
   id: string;
   category: string;
   met: number | null;
+  /** Sert à reconnaître rameur, vélo et course pour le calcul d'allure. */
+  equipment?: string[];
   restSec: number | null;
   targetTimeSec: number | null;
   targetReps: string | null;
@@ -126,6 +135,11 @@ export function estimateWorkSeconds(entries: EffortEntry[]): number {
   }
   // Pas de repos après la toute dernière série.
   seconds -= restSeconds(done[done.length - 1].item);
+
+  // Changer d'exercice prend du temps : mise en place, charge, déplacement.
+  const exerciseCount = new Set(done.map((e) => e.item.id)).size;
+  seconds += Math.max(0, exerciseCount - 1) * TRANSITION_SECONDS;
+
   return Math.max(0, Math.round(seconds));
 }
 
@@ -133,8 +147,31 @@ export function estimateWorkSeconds(entries: EffortEntry[]): number {
 /*  Estimation des calories                                                   */
 /* -------------------------------------------------------------------------- */
 
+/** Quelle table d'allure appliquer, d'après le matériel de l'exercice. */
+function paceTableFor(item: EffortItem): Array<[number, number]> | null {
+  const equipment = item.equipment ?? [];
+  if (equipment.includes("rameur")) return PACE_MET.rameur;
+  if (equipment.includes("velo")) return PACE_MET.velo;
+  // Pas de machine : une distance parcourue, c'est de la marche ou de la course.
+  if (equipment.length === 0 || equipment.includes("aucun") || equipment.includes("poids_du_corps")) {
+    return PACE_MET.course;
+  }
+  return null;
+}
+
 function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): number {
   const base = item.met ?? DEFAULT_MET[categoryOf(item)];
+
+  // Distance et durée notées : l'allure dit bien mieux que l'exercice ce que
+  // l'effort a coûté (10 min de rameur tranquille ≠ 10 min à fond).
+  if (set.distanceM && set.distanceM > 0 && set.timeSec && set.timeSec > 0) {
+    const table = paceTableFor(item);
+    if (table) {
+      const metersPerMinute = set.distanceM / (set.timeSec / 60);
+      const found = table.find(([max]) => metersPerMinute < max);
+      if (found) return found[1];
+    }
+  }
 
   // Porter une charge coûte plus cher : on module jusqu'à +35 % selon le poids
   // soulevé, rapporté au poids de corps.
@@ -174,11 +211,18 @@ export function estimateCalories(
   const done = entries.filter((e) => e.set.done);
   if (done.length === 0) return 0;
 
+  const perMinute = restingKcalPerMinute(profile) ?? 0;
+
   let total = 0;
   done.forEach(({ item, set }, index) => {
     const isLast = index === done.length - 1;
     total += setCalories(item, set, profile, !isLast) ?? 0;
   });
+
+  // Les transitions entre exercices, à coût faible.
+  const exerciseCount = new Set(done.map((e) => e.item.id)).size;
+  total += (REST_MET * perMinute * Math.max(0, exerciseCount - 1) * TRANSITION_SECONDS) / 60;
+
   return Math.round(total);
 }
 
