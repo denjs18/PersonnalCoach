@@ -11,6 +11,8 @@ export type SeedExercise = {
   steps: string[];
   /** Points de vigilance et erreurs fréquentes. */
   cues: string;
+  /** Coût énergétique en MET. Absent = valeur par défaut de la catégorie. */
+  met?: number;
   tracking: TrackingKey;
 };
 
@@ -34,6 +36,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Enchaîne à allure tranquille pendant toute la durée prévue.",
     ],
     cues: "Ordre du mouvement : jambes → buste → bras. Retour : bras → buste → jambes. Cadence 20-24 coups/min.",
+    met: 4.8,
     tracking: "time_distance",
   },
   {
@@ -64,6 +67,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Si tu accroches, repars immédiatement : c'est normal au début.",
     ],
     cues: "Reste sur l'avant du pied, coudes près du corps, ce sont les poignets qui tournent.",
+    met: 8.8,
     tracking: "time",
   },
   {
@@ -79,6 +83,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Augmente l'amplitude au fil des répétitions.",
     ],
     cues: "10 rotations par articulation, de bas en haut. Amplitude progressive, jamais forcée.",
+    met: 2.5,
     tracking: "time",
   },
   {
@@ -93,6 +98,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Accélère jusqu'à un rythme de course.",
     ],
     cues: "Genou à hauteur de hanche, buste droit, appuis dynamiques sur l'avant du pied.",
+    met: 8,
     tracking: "time",
   },
   {
@@ -107,6 +113,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Garde le buste droit et accélère progressivement.",
     ],
     cues: "Bassin bien droit, ne cambre pas. Rythme rapide et léger.",
+    met: 8,
     tracking: "time",
   },
   {
@@ -136,6 +143,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "5 pas à droite, 5 pas à gauche, sans laisser les genoux rentrer.",
     ],
     cues: "Genoux qui poussent vers l'extérieur, petits pas, tension permanente dans l'élastique.",
+    met: 3.5,
     tracking: "reps",
   },
   {
@@ -151,6 +159,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends lentement sans poser complètement entre les répétitions.",
     ],
     cues: "Pousse dans les talons, serre les fessiers en haut 1 seconde, ne cambre pas le bas du dos.",
+    met: 3,
     tracking: "reps",
   },
   {
@@ -166,6 +175,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Remonte en poussant dans les talons.",
     ],
     cues: "Pieds largeur d'épaules, poitrine haute, descends jusqu'à ce que les cuisses soient parallèles au sol.",
+    met: 3.5,
     tracking: "reps",
   },
   {
@@ -195,6 +205,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens et enchaîne vers la gauche, sans bouger le bassin.",
     ],
     cues: "Bras relâchés, ce sont les épaules qui emmènent. Bassin qui ne bouge pas.",
+    met: 2.5,
     tracking: "reps",
   },
   {
@@ -209,6 +220,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Puis 15 cercles vers l'arrière.",
     ],
     cues: "Bras tendus, amplitude maximale, 15 dans chaque sens.",
+    met: 2.8,
     tracking: "reps",
   },
   {
@@ -301,6 +313,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Réceptionne genoux souples et enchaîne directement.",
     ],
     cues: "Charge légère uniquement. Réception silencieuse, genoux souples.",
+    met: 7,
     tracking: "reps_weight",
   },
   {
@@ -346,6 +359,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Avance ainsi sur la distance ou le nombre de pas prévus.",
     ],
     cues: "Regard loin devant, gainage serré, pas trop rapide.",
+    met: 5.5,
     tracking: "reps_weight",
   },
   {
@@ -436,6 +450,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Laisse la kettlebell monter jusqu'à hauteur de poitrine, puis accompagne-la de nouveau entre les jambes.",
     ],
     cues: "Ce sont les hanches qui projettent, pas les bras. La KB monte au niveau de la poitrine max.",
+    met: 9.8,
     tracking: "reps_weight",
   },
   {
@@ -451,6 +466,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Ramène la charge à la poitrine et enchaîne.",
     ],
     cues: "La remontée du squat lance la charge : c'est un seul mouvement fluide.",
+    met: 7,
     tracking: "reps_weight",
   },
   {
@@ -556,6 +572,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens en 2 secondes, sans relâcher complètement la tension.",
     ],
     cues: "Tire jusqu'aux côtes, épaules basses, 2 secondes pour revenir.",
+    met: 4,
     tracking: "reps",
   },
   {
@@ -586,6 +603,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends lentement, sans élan.",
     ],
     cues: "Charge légère, coudes très légèrement fléchis, pas d'élan.",
+    met: 3.5,
     tracking: "reps_weight",
   },
   {
@@ -616,6 +634,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends et enchaîne en alternant les jambes.",
     ],
     cues: "Rythme soutenu, bras qui accompagnent, alterne les jambes.",
+    met: 7,
     tracking: "reps",
   },
   {
@@ -631,6 +650,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Remonte en serrant les fessiers dès que tu sens l'arrière des cuisses.",
     ],
     cues: "Genoux légèrement fléchis, dos plat, descends jusqu'à sentir l'arrière des cuisses.",
+    met: 4,
     tracking: "reps",
   },
   {
@@ -645,6 +665,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends lentement jusqu'à tendre presque complètement les bras.",
     ],
     cues: "Coudes collés au corps, pas de balancier du buste, descente contrôlée.",
+    met: 3.5,
     tracking: "reps_weight",
   },
   {
@@ -660,6 +681,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Tends les bras pour remonter, sans cambrer le dos.",
     ],
     cues: "Coudes serrés vers l'avant, côtes basses, mouvement lent.",
+    met: 3.5,
     tracking: "reps_weight",
   },
   {
@@ -675,6 +697,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Tiens la position en respirant calmement.",
     ],
     cues: "Dos plaqué au mur, genoux à 90°, respire calmement.",
+    met: 4,
     tracking: "time",
   },
 
@@ -692,6 +715,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Ramasse-la et enchaîne. Utilise une slam ball qui ne rebondit pas.",
     ],
     cues: "Extension complète en haut, gaine avant de claquer, accompagne la balle jusqu'au sol.",
+    met: 7,
     tracking: "reps_weight",
   },
   {
@@ -707,6 +731,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Réceptionne la balle contre la poitrine et enchaîne directement le squat suivant.",
     ],
     cues: "La balle part de la poitrine, la puissance vient des jambes. Réceptionne en amortissant vers le squat suivant.",
+    met: 8,
     tracking: "reps_weight",
   },
   {
@@ -722,6 +747,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Récupère la balle au rebond et enchaîne. Change de côté à mi-série.",
     ],
     cues: "Le pied arrière pivote, la puissance part des hanches. Reste gainée.",
+    met: 6,
     tracking: "reps_weight",
   },
   {
@@ -737,6 +763,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Retourne-toi, ramasse la balle et enchaîne en alternant les épaules.",
     ],
     cues: "Charnière de hanche pour ramasser, extension explosive. Alterne les épaules.",
+    met: 7,
     tracking: "reps_weight",
   },
   {
@@ -752,6 +779,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Fais tourner le buste pour toucher le sol d'un côté puis de l'autre.",
     ],
     cues: "Dos plat (pas rond), la balle touche le sol de chaque côté, respire.",
+    met: 4,
     tracking: "reps_weight",
   },
   {
@@ -767,6 +795,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends lentement sur la même diagonale. Change de côté à mi-série.",
     ],
     cues: "Bras tendus, ce sont les hanches et le buste qui tournent, pas seulement les bras.",
+    met: 4.5,
     tracking: "reps_weight",
   },
   {
@@ -782,6 +811,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Repose les charges en pliant les jambes, pas le dos.",
     ],
     cues: "Épaules basses et en arrière, buste droit, pas réguliers, respiration continue.",
+    met: 6,
     tracking: "reps_weight",
   },
   {
@@ -797,6 +827,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Change de main à mi-parcours.",
     ],
     cues: "Reste parfaitement droite, ne penche pas du côté chargé. Change de main à mi-parcours.",
+    met: 5,
     tracking: "reps_weight",
   },
   {
@@ -812,6 +843,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Change de bras à mi-parcours.",
     ],
     cues: "Bras verrouillé près de l'oreille, côtes basses, regard devant.",
+    met: 4.5,
     tracking: "reps_weight",
   },
   {
@@ -827,6 +859,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redresse le buste, puis lève-toi. Refais le chemin exactement en sens inverse.",
     ],
     cues: "Un pas à la fois, le regard reste sur la charge. Commence sans poids pour apprendre.",
+    met: 5,
     tracking: "reps_weight",
   },
   {
@@ -842,6 +875,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Garde le bassin stable, comme si un verre d'eau était posé sur le bas de ton dos.",
     ],
     cues: "Bras et jambe opposés en même temps, bassin qui ne se balance pas, dos plat.",
+    met: 7,
     tracking: "time",
   },
   {
@@ -857,6 +891,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Garde le bassin haut pendant tout le déplacement.",
     ],
     cues: "Bassin haut en permanence, doigts orientés vers les pieds.",
+    met: 6.5,
     tracking: "time",
   },
   {
@@ -872,6 +907,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Fais quelques mètres dans un sens, puis dans l'autre.",
     ],
     cues: "Reste basse, talons au sol si possible, déplacement fluide.",
+    met: 6.5,
     tracking: "time",
   },
   {
@@ -887,6 +923,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens en planche et alterne les côtés.",
     ],
     cues: "Regarde la jambe qui passe, appuie fort sur la main opposée.",
+    met: 6,
     tracking: "reps",
   },
   {
@@ -902,6 +939,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Réceptionne la charge sur l'épaule, genoux légèrement fléchis, puis repose-la.",
     ],
     cues: "Extension jambes-hanches d'abord, les coudes passent vite dessous. Charge modérée.",
+    met: 6.5,
     tracking: "reps_weight",
   },
   {
@@ -917,6 +955,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends la charge le long du corps et enchaîne. Change de bras à mi-série.",
     ],
     cues: "Trajet proche du corps, extension explosive, verrouille le bras en haut.",
+    met: 7,
     tracking: "reps_weight",
   },
   {
@@ -932,6 +971,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Fais le nombre de tours prévu, puis autant dans l'autre sens.",
     ],
     cues: "Bassin totalement immobile, alterne les sens.",
+    met: 4,
     tracking: "reps_weight",
   },
   {
@@ -947,6 +987,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens face à toi, puis remonte et change de jambe.",
     ],
     cues: "Bras tendus devant, la rotation vient du buste, genou avant stable.",
+    met: 5,
     tracking: "reps_weight",
   },
   {
@@ -962,6 +1003,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens au centre en expirant, puis alterne.",
     ],
     cues: "Bas du dos plaqué au sol en permanence, expire quand tu tends.",
+    met: 3.5,
     tracking: "reps",
   },
   {
@@ -977,6 +1019,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Repose-le en pliant les jambes, dos toujours plat.",
     ],
     cues: "Charnière de hanche pour ramasser, dos plat, le sac reste proche du corps.",
+    met: 6,
     tracking: "reps_weight",
   },
 
@@ -994,6 +1037,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Réceptionne en amortissant vers la poitrine, puis renvoie immédiatement.",
     ],
     cues: "Amortis avant de renvoyer, jambes fléchies, distance 2-3 m.",
+    met: 4.5,
     tracking: "reps",
   },
   {
@@ -1009,6 +1053,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "La balle tourne ainsi en boucle. Changez de sens à mi-série.",
     ],
     cues: "Pieds fixes, rotation du buste seulement. Change de sens à mi-série.",
+    met: 4,
     tracking: "reps",
   },
   {
@@ -1024,6 +1069,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Enchaînez : le squat se fait toujours avant la passe.",
     ],
     cues: "Squat complet avant chaque passe. Rythme régulier, on ne se précipite pas.",
+    met: 6,
     tracking: "reps",
   },
   {
@@ -1039,6 +1085,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Alternez : quand l'un monte, l'autre descend.",
     ],
     cues: "Déroule le dos, la balle part quand le buste est en haut.",
+    met: 5,
     tracking: "reps",
   },
   {
@@ -1054,6 +1101,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Repose, change de main et alternez.",
     ],
     cues: "Bassin qui ne tourne pas, pieds un peu écartés pour la stabilité.",
+    met: 4.5,
     tracking: "reps",
   },
   {
@@ -1069,6 +1117,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Faites une courte distance, puis inversez les rôles.",
     ],
     cues: "Gainage serré, ne creuse pas le bas du dos. Distance courte pour commencer.",
+    met: 6,
     tracking: "time",
   },
   {
@@ -1084,6 +1133,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens en marchant, puis inversez les rôles.",
     ],
     cues: "Buste incliné vers l'avant, appuis puissants, 10-15 m par répétition.",
+    met: 9,
     tracking: "reps",
   },
   {
@@ -1099,6 +1149,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Revenez en 2 secondes, en gardant la tension.",
     ],
     cues: "Position stable, épaules basses, tempo commun de 2 secondes.",
+    met: 4.5,
     tracking: "reps",
   },
   {
@@ -1114,6 +1165,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reposez la main et enchaînez la pompe suivante.",
     ],
     cues: "Le check se fait bras tendus, corps toujours gainé.",
+    met: 5,
     tracking: "reps",
   },
   {
@@ -1129,6 +1181,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Tenez la position en vous parlant pour vous encourager.",
     ],
     cues: "Appui mutuel constant, genoux à 90°, on communique pour tenir.",
+    met: 4.5,
     tracking: "time",
   },
   {
@@ -1144,6 +1197,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Enchaînez jusqu'à la fin du temps prévu.",
     ],
     cues: "L'échange se fait par un check. Tenue de position propre pendant l'attente.",
+    met: 8,
     tracking: "time",
   },
   {
@@ -1159,6 +1213,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Remontez, changez de jambe et recommencez.",
     ],
     cues: "Synchronisez la descente. Genou arrière proche du sol.",
+    met: 5.5,
     tracking: "reps",
   },
   {
@@ -1174,6 +1229,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Parlez-vous : c'est celle qui travaille qui dit si c'est trop ou pas assez.",
     ],
     cues: "Résistance régulière, 3 secondes à la montée, 3 à la descente. On se parle.",
+    met: 4,
     tracking: "reps",
   },
   {
@@ -1189,6 +1245,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Si l'une fatigue, ralentissez ensemble plutôt que de perdre la synchro.",
     ],
     cues: "Même rythme pour les deux, on ralentit ensemble plutôt que de casser la synchro.",
+    met: 8,
     tracking: "reps",
   },
   {
@@ -1204,6 +1261,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Inversez les rôles.",
     ],
     cues: "Le sauteur regarde où il atterrit, celui qui gaine reste bien serré.",
+    met: 6.5,
     tracking: "reps",
   },
 
@@ -1251,6 +1309,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Alterne le bras qui démarre à chaque répétition.",
     ],
     cues: "Bassin le plus stable possible, alterne le bras qui démarre.",
+    met: 5,
     tracking: "reps",
   },
   {
@@ -1311,6 +1370,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Garde le bassin bas et stable, sans rebondir.",
     ],
     cues: "Bassin bas et stable, épaules au-dessus des mains, rythme soutenu.",
+    met: 8,
     tracking: "time",
   },
   {
@@ -1341,6 +1401,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Reviens en tirant avec les abdos, pas avec les bras.",
     ],
     cues: "Dos qui ne se creuse jamais. Amplitude courte au début.",
+    met: 4.5,
     tracking: "reps",
   },
   {
@@ -1403,6 +1464,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Répète le nombre de séries prévu et note ta distance.",
     ],
     cues: "Garde une cadence stable, pousse fort avec les jambes. Note ta distance.",
+    met: 9.5,
     tracking: "time_distance",
   },
   {
@@ -1433,6 +1495,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redresse-toi et termine par un saut, mains au-dessus de la tête.",
     ],
     cues: "Trouve ton rythme et tiens-le. Version sans saut si besoin.",
+    met: 8,
     tracking: "reps",
   },
   {
@@ -1448,6 +1511,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Alterne les bras, ou fais-les bouger ensemble pour varier.",
     ],
     cues: "Genoux fléchis, gainage serré, l'onde doit aller jusqu'à l'ancrage.",
+    met: 8,
     tracking: "time",
   },
   {
@@ -1463,6 +1527,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Si tu accroches la corde, repars sans attendre.",
     ],
     cues: "Sauts bas et rapides, la corde passe juste sous les pieds.",
+    met: 11,
     tracking: "time",
   },
   {
@@ -1478,6 +1543,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Enchaîne pendant la durée prévue.",
     ],
     cues: "Freine sur 2-3 appuis, touche le sol au demi-tour, repars fort.",
+    met: 9,
     tracking: "time",
   },
   {
@@ -1493,6 +1559,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "15 à 30 secondes maximum par série, puis récupère.",
     ],
     cues: "Fréquence maximale, bras actifs. 15-30 s max par série.",
+    met: 10,
     tracking: "time",
   },
   {
@@ -1508,6 +1575,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Maintiens la durée prévue en respirant régulièrement.",
     ],
     cues: "Buste droit, grandes foulées, respiration nasale si possible.",
+    met: 6,
     tracking: "time_distance",
   },
   {
@@ -1523,6 +1591,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Choisis un rythme que tu peux tenir jusqu'au dernier tour.",
     ],
     cues: "Choisis un rythme que tu peux tenir sur tous les tours.",
+    met: 7.5,
     tracking: "time",
   },
   {
@@ -1538,6 +1607,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Repars à la minute suivante, en gardant la même qualité de mouvement.",
     ],
     cues: "Respiration synchronisée : expire en haut. Ne perds pas la technique avec la fatigue.",
+    met: 9.8,
     tracking: "reps_weight",
   },
 
@@ -1660,6 +1730,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Repose les mains en pliant immédiatement les coudes pour amortir.",
     ],
     cues: "Version genoux ou surélevée au début. Amortis à la réception.",
+    met: 6,
     tracking: "reps",
   },
 
@@ -1677,6 +1748,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Suis la main du regard, respire 3 fois, puis change de côté.",
     ],
     cues: "Respire dans la position, 3 respirations par côté.",
+    met: 3,
     tracking: "reps",
   },
   {
@@ -1782,6 +1854,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Si les talons décollent, pose-les sur un petit rehaussement.",
     ],
     cues: "Talons au sol si possible, sinon surélève-les. Respire profondément.",
+    met: 2.8,
     tracking: "time",
   },
   {

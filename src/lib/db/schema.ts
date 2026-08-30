@@ -30,6 +30,8 @@ export const exercises = pgTable(
     steps: text("steps").array().notNull().default([]),
     /** Points techniques / erreurs à éviter */
     cues: text("cues"),
+    /** Coût énergétique en MET, pour l'estimation des calories */
+    met: real("met"),
     /** reps_weight | reps | time | distance | time_distance */
     tracking: text("tracking").notNull().default("reps_weight"),
     /** true = exercice créé à la main par le coach */

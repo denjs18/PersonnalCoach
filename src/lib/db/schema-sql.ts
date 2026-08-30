@@ -20,6 +20,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     description  text,
     steps        text[] NOT NULL DEFAULT '{}',
     cues         text,
+    met          real,
     tracking     text NOT NULL DEFAULT 'reps_weight',
     is_custom    boolean NOT NULL DEFAULT false,
     is_archived  boolean NOT NULL DEFAULT false,
@@ -28,6 +29,7 @@ export const SCHEMA_STATEMENTS: string[] = [
 
   // Migration : bases créées avant l'ajout du pas-à-pas.
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS steps text[] NOT NULL DEFAULT '{}'`,
+  `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS met real`,
 
   `CREATE UNIQUE INDEX IF NOT EXISTS exercises_name_unique ON exercises (name)`,
   `CREATE INDEX IF NOT EXISTS exercises_category_idx ON exercises (category)`,

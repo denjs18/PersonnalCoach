@@ -20,13 +20,17 @@ exercices à deux**, avec du rameur / vélo à l'échauffement. Peu de muscu iso
 | Écran | Contenu |
 |---|---|
 | **Accueil** | La prochaine séance en grand, objectif de la semaine, série de semaines, séances à rattraper |
-| **Séance** | Exercices par bloc (échauffement / principal / finisher / retour au calme), saisie poids + reps série par série, chrono de repos, consignes du coach |
-| **Historique** | Toutes les séances terminées, par mois, avec ressenti et durée |
+| **Séance** | Exercices par bloc (échauffement / principal / finisher / retour au calme), saisie poids + reps série par série, chrono de repos, consignes du coach, dernière perf et record par exercice |
+| **Historique** | Toutes les séances terminées, par mois, avec ressenti, durée et calories |
 | **Progression** | Records par exercice, courbes de charge et de volume, détail séance par séance |
 
 Pendant la séance : sauvegarde automatique, pré-remplissage avec l'objectif du
 coach ou la dernière perf, rappel de « la dernière fois tu as fait 12 kg × 12 »,
 et un écran de félicitations à la fin.
+
+Sous chaque exercice, elle voit **ce qu'elle avait fait la dernière fois** et
+**son record** sur ce mouvement — de quoi savoir quoi viser sans ouvrir
+l'historique.
 
 **Chaque exercice explique comment on le fait.** Un bouton « Comment faire »
 déplie le déroulé du mouvement en 3 ou 4 étapes numérotées, les points de
@@ -42,10 +46,38 @@ choisit ses exercices — pratique quand on ne connaît pas encore tout.
 | **Composer** | Titre, date, focus, intensité, mot du coach, puis les exercices : séries, reps, poids indicatif, repos, superset, consigne personnalisée |
 | **Bibliothèque** | 119 exercices de départ + les tiens, chacun avec son pas-à-pas. Recherche, filtres par catégorie et matériel, création, modification, archivage |
 | **Suivi** | Ce qu'elle a réellement fait, ses retours, sa progression par exercice |
-| **Réglages** | Son prénom, objectif hebdo, message de motivation |
+| **Réglages** | Son prénom, objectif hebdo, message de motivation, profil physique pour les calories |
 
 Une séance reste invisible pour elle tant qu'elle est en **brouillon**. Un bouton
 « Publier pour elle » la rend visible immédiatement.
+
+---
+
+## ⏱️ Durée et calories : comment c'est calculé
+
+**La durée n'est pas un chronomètre.** Ouvrir la séance en avance, la laisser
+tourner pendant une pause ou reprendre le lendemain ne change rien : le temps
+est reconstruit à partir des séries réellement validées — durée de l'effort
+(temps noté, ou répétitions × durée moyenne d'une rep selon la famille
+d'exercices) plus le repos prévu entre les séries.
+
+**Les calories sont une estimation**, calculée avec :
+
+- le **métabolisme de repos** (formule de Mifflin-St Jeor), à partir du sexe, de
+  la taille, du poids et de l'âge renseignés dans *Réglages* ;
+- le **coût énergétique de l'exercice** en MET, propre à chaque mouvement
+  (un swing kettlebell à 9,8 ne coûte pas la même chose qu'un étirement à 2,3) ;
+- la **durée d'effort** ci-dessus, le repos étant compté à un coût faible ;
+- une **majoration selon la charge** soulevée, rapportée au poids de corps.
+
+Tant que sexe, taille et poids ne sont pas renseignés, aucune calorie n'est
+affichée — plutôt que d'inventer un chiffre. Dès qu'ils le sont, **toutes les
+séances déjà faites affichent leurs calories** : rien n'est figé en base, tout
+est recalculé à l'affichage. Changer de poids met donc aussi le passé à jour.
+
+Comme toute estimation de dépense énergétique, l'ordre de grandeur est fiable
+mais le chiffre exact ne l'est pas : à prendre comme un repère de progression,
+pas comme une mesure.
 
 ---
 
@@ -192,6 +224,7 @@ src/
     db/schema-sql.ts        le SQL de création, idempotent (source unique)
     db/index.ts             connexion, Neon en HTTP ou Postgres en TCP
     actions/                Server Actions (séances, séries, exercices, base)
+    effort.ts               durée estimée et calories (partagé client/serveur)
     queries.ts              lectures (séances, stats, progression)
     exercise-library.ts     les 119 exercices de départ
 ```
@@ -200,11 +233,11 @@ src/
 
 | Table | Rôle |
 |---|---|
-| `exercises` | Bibliothèque : description, déroulé pas-à-pas, points de vigilance. `is_custom` distingue tes créations du fonds de départ |
+| `exercises` | Bibliothèque : description, déroulé pas-à-pas, points de vigilance, coût en MET. `is_custom` distingue tes créations du fonds de départ |
 | `workouts` | Une séance : date, statut (`draft` / `published` / `done`), consignes, ressenti |
 | `workout_items` | Un exercice dans une séance : bloc, séries, objectifs, repos, note |
 | `set_logs` | Une série réalisée : reps, poids, temps, distance. C'est la source de la progression |
-| `settings` | Prénom de l'athlète, objectif hebdo, message d'accueil |
+| `settings` | Prénom de l'athlète, objectif hebdo, message d'accueil, profil physique |
 
 ---
 

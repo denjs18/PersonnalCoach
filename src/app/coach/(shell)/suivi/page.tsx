@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Clock, Layers, LineChart, MessageCircle } from "lucide-react";
+import { ChevronRight, Clock, Flame, Layers, LineChart, MessageCircle } from "lucide-react";
 import { requireCoach } from "@/lib/auth";
 import {
   getCompletedWorkouts,
@@ -45,16 +45,30 @@ export default async function SuiviPage() {
           suffix="faites"
           accent="energy"
         />
-        <StatCard
-          label="Volume"
-          value={
-            stats.totalVolumeKg >= 1000
-              ? (stats.totalVolumeKg / 1000).toFixed(1).replace(".", ",")
-              : stats.totalVolumeKg
-          }
-          suffix={stats.totalVolumeKg >= 1000 ? "t" : "kg"}
-          accent="violet"
-        />
+        {stats.totalCalories !== null ? (
+          <StatCard
+            label="Calories"
+            value={
+              stats.totalCalories >= 10000
+                ? `${(stats.totalCalories / 1000).toFixed(1).replace(".", ",")}k`
+                : stats.totalCalories
+            }
+            suffix="kcal"
+            accent="violet"
+            hint="estimation"
+          />
+        ) : (
+          <StatCard
+            label="Volume"
+            value={
+              stats.totalVolumeKg >= 1000
+                ? (stats.totalVolumeKg / 1000).toFixed(1).replace(".", ",")
+                : stats.totalVolumeKg
+            }
+            suffix={stats.totalVolumeKg >= 1000 ? "t" : "kg"}
+            accent="violet"
+          />
+        )}
       </div>
 
       {withFeedback.length > 0 ? (
@@ -122,6 +136,11 @@ export default async function SuiviPage() {
                       <span className="chip">
                         <Clock className="size-3.5" />
                         {formatDuration(session.durationMinutes * 60)}
+                      </span>
+                    ) : null}
+                    {session.calories ? (
+                      <span className="chip border-warn/35 text-warn">
+                        <Flame className="size-3.5" />~{session.calories} kcal
                       </span>
                     ) : null}
                   </div>

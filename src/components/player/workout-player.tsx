@@ -12,6 +12,8 @@ import {
   Loader2,
   Minus,
   Plus,
+  Flame,
+  History,
   Timer,
   Trophy,
 } from "lucide-react";
@@ -23,6 +25,15 @@ import {
   type SetEntry,
 } from "@/lib/actions/logs";
 import { MOODS, SECTIONS, type SectionKey } from "@/lib/constants";
+import {
+  estimateCalories,
+  estimateWorkSeconds,
+  isProfileComplete,
+  setCalories,
+  type AthleteProfile,
+  type EffortEntry,
+  type EffortItem,
+} from "@/lib/effort";
 import { CategoryBadge } from "@/components/ui";
 import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { RestTimer } from "./rest-timer";
@@ -50,6 +61,7 @@ export type PlayerItemData = {
   cues: string | null;
   tracking: string;
   section: string;
+  met: number | null;
   sets: number;
   targetReps: string | null;
   targetWeight: number | null;
@@ -190,10 +202,12 @@ function Stepper({
 export function WorkoutPlayer({
   workout,
   items,
+  profile,
   readOnly = false,
 }: {
   workout: PlayerWorkout;
   items: PlayerItemData[];
+  profile: AthleteProfile;
   readOnly?: boolean;
 }) {
   const [state, setState] = useState<Record<string, SetState[]>>(() => {
@@ -226,19 +240,8 @@ export function WorkoutPlayer({
     sets: number;
     volume: number;
     minutes: number;
+    calories: number | null;
   }>(null);
-
-  const startRef = useRef<number>(
-    workout.startedAt ? new Date(workout.startedAt).getTime() : Date.now(),
-  );
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    const tick = () => setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     if (readOnly || workout.status === "done") return;
@@ -378,10 +381,13 @@ export function WorkoutPlayer({
 
   /* -------------------------------- Calculs ------------------------------ */
 
+  /** Le temps affiché vient des séries validées, jamais de l'horloge. */
   const totals = useMemo(() => {
     let total = 0;
     let done = 0;
     let volume = 0;
+    const entries: EffortEntry[] = [];
+
     for (const item of items) {
       for (const s of state[item.id] ?? []) {
         total++;
@@ -389,10 +395,33 @@ export function WorkoutPlayer({
           done++;
           if (s.reps && s.weightKg) volume += s.reps * s.weightKg;
         }
+        entries.push({ item: toEffortItem(item), set: s });
       }
     }
-    return { total, done, volume };
-  }, [items, state]);
+
+    return {
+      total,
+      done,
+      volume,
+      seconds: estimateWorkSeconds(entries),
+      calories: estimateCalories(entries, profile),
+    };
+  }, [items, state, profile]);
+
+  /** Calories par exercice, pour l'afficher sur sa carte. */
+  const caloriesByItem = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!isProfileComplete(profile)) return map;
+    for (const item of items) {
+      const effortItem = toEffortItem(item);
+      let total = 0;
+      for (const s of state[item.id] ?? []) {
+        if (s.done) total += setCalories(effortItem, s, profile) ?? 0;
+      }
+      if (total > 0) map.set(item.id, total);
+    }
+    return map;
+  }, [items, state, profile]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, PlayerItemData[]>();
@@ -408,10 +437,15 @@ export function WorkoutPlayer({
 
   const finish = async (rating: number | null, note: string) => {
     await flush();
-    const minutes = Math.max(1, Math.round(elapsed / 60));
+    const minutes = Math.max(1, Math.round(totals.seconds / 60));
     await finishWorkoutAction(workout.id, { rating, note, durationMinutes: minutes });
     setShowFinish(false);
-    setCelebration({ sets: totals.done, volume: Math.round(totals.volume), minutes });
+    setCelebration({
+      sets: totals.done,
+      volume: Math.round(totals.volume),
+      minutes,
+      calories: totals.calories,
+    });
     navigator.vibrate?.([40, 60, 40, 60, 120]);
   };
 
@@ -439,12 +473,19 @@ export function WorkoutPlayer({
               <span className="tabular-nums">
                 {totals.done}/{totals.total} séries
               </span>
-              {!readOnly && !isDone ? (
+              {totals.done > 0 ? (
                 <>
                   <span aria-hidden>·</span>
                   <span className="inline-flex items-center gap-1 tabular-nums">
-                    <Timer className="size-3" />
-                    {formatDuration(elapsed)}
+                    <Timer className="size-3" />~{formatDuration(totals.seconds)}
+                  </span>
+                </>
+              ) : null}
+              {totals.calories ? (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="inline-flex items-center gap-1 tabular-nums text-warn">
+                    <Flame className="size-3" />~{totals.calories} kcal
                   </span>
                 </>
               ) : null}
@@ -500,6 +541,7 @@ export function WorkoutPlayer({
                   key={item.id}
                   item={item}
                   sets={state[item.id] ?? []}
+                  calories={caloriesByItem.get(item.id) ?? null}
                   expanded={expanded === item.id}
                   onToggleExpand={() =>
                     setExpanded((cur) => (cur === item.id ? null : item.id))
@@ -558,7 +600,8 @@ export function WorkoutPlayer({
           done={totals.done}
           total={totals.total}
           volume={Math.round(totals.volume)}
-          minutes={Math.max(1, Math.round(elapsed / 60))}
+          minutes={Math.max(1, Math.round(totals.seconds / 60))}
+          calories={totals.calories}
           onCancel={() => setShowFinish(false)}
           onConfirm={finish}
         />
@@ -572,6 +615,7 @@ export function WorkoutPlayer({
 function ExerciseCard({
   item,
   sets,
+  calories,
   expanded,
   onToggleExpand,
   onPatch,
@@ -583,6 +627,7 @@ function ExerciseCard({
 }: {
   item: PlayerItemData;
   sets: SetState[];
+  calories: number | null;
   expanded: boolean;
   onToggleExpand: () => void;
   onPatch: (setNumber: number, patch: Partial<SetState>) => void;
@@ -594,6 +639,8 @@ function ExerciseCard({
 }) {
   const doneCount = sets.filter((s) => s.done).length;
   const complete = doneCount === sets.length && sets.length > 0;
+  const lastLabel = lastPerfLabel(item);
+  const recordLabel = recordLabel_(item);
 
   return (
     <article
@@ -632,11 +679,28 @@ function ExerciseCard({
           </p>
         ) : null}
 
-        {item.last?.lastDate ? (
-          <p className="mt-2 text-[12px] text-faint">
-            Dernière fois :{" "}
-            <span className="font-semibold text-muted">{lastPerfLabel(item)}</span>
-          </p>
+        {lastLabel || recordLabel || calories ? (
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {lastLabel ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2/70 px-2 py-1 text-[11.5px]">
+                <History className="size-3 shrink-0 text-faint" />
+                <span className="text-faint">Dernière fois</span>
+                <span className="font-bold text-fg/90">{lastLabel}</span>
+              </span>
+            ) : null}
+            {recordLabel ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-2/12 px-2 py-1 text-[11.5px]">
+                <Trophy className="size-3 shrink-0 text-brand-2" />
+                <span className="text-brand-2/80">Record</span>
+                <span className="font-bold text-brand-2">{recordLabel}</span>
+              </span>
+            ) : null}
+            {calories ? (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-warn/12 px-2 py-1 text-[11.5px] font-bold text-warn">
+                <Flame className="size-3 shrink-0" />~{Math.round(calories)} kcal
+              </span>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
@@ -858,6 +922,7 @@ function FinishSheet({
   total,
   volume,
   minutes,
+  calories,
   onCancel,
   onConfirm,
 }: {
@@ -865,6 +930,7 @@ function FinishSheet({
   total: number;
   volume: number;
   minutes: number;
+  calories: number | null;
   onCancel: () => void;
   onConfirm: (rating: number | null, note: string) => Promise<void>;
 }) {
@@ -878,7 +944,8 @@ function FinishSheet({
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-surface-3" />
         <h2 className="text-xl font-extrabold">Séance terminée ?</h2>
         <p className="mt-1 text-sm text-muted">
-          {done}/{total} séries · {formatDuration(minutes * 60)}
+          {done}/{total} séries · ~{formatDuration(minutes * 60)}
+          {calories ? ` · ~${calories} kcal` : ""}
           {volume > 0 ? ` · ${volume.toLocaleString("fr-FR")} kg soulevés` : ""}
         </p>
 
@@ -944,11 +1011,13 @@ function Celebration({
   sets,
   volume,
   minutes,
+  calories,
   title,
 }: {
   sets: number;
   volume: number;
   minutes: number;
+  calories: number | null;
   title: string;
 }) {
   const pieces = useMemo(
@@ -1006,12 +1075,23 @@ function Celebration({
             <p className="text-[10px] font-semibold uppercase tracking-wide text-faint">minutes</p>
           </div>
           <div className="card p-3">
-            <p className="text-2xl font-extrabold text-brand-3 tabular-nums">
-              {volume > 999 ? `${(volume / 1000).toFixed(1)}t` : volume}
-            </p>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-faint">
-              {volume > 999 ? "soulevés" : "kg soulevés"}
-            </p>
+            {calories !== null ? (
+              <>
+                <p className="text-2xl font-extrabold text-warn tabular-nums">{calories}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-faint">
+                  kcal
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-extrabold text-brand-3 tabular-nums">
+                  {volume > 999 ? `${(volume / 1000).toFixed(1)}t` : volume}
+                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-faint">
+                  {volume > 999 ? "soulevés" : "kg soulevés"}
+                </p>
+              </>
+            )}
           </div>
         </div>
 
@@ -1027,6 +1107,18 @@ function Celebration({
 }
 
 /* ------------------------------- Helpers --------------------------------- */
+
+/** Réduit un exercice de séance à ce dont le calcul d'effort a besoin. */
+function toEffortItem(item: PlayerItemData): EffortItem {
+  return {
+    id: item.id,
+    category: item.category,
+    met: item.met,
+    restSec: item.restSec,
+    targetTimeSec: item.targetTimeSec,
+    targetReps: item.targetReps,
+  };
+}
 
 function sectionOrder(section: string): number {
   const order = ["echauffement", "principal", "finisher", "retour_au_calme"];
@@ -1063,16 +1155,35 @@ function targetLabel(item: PlayerItemData): string {
   return parts.join(" · ");
 }
 
-function lastPerfLabel(item: PlayerItemData): string {
+/** « 12 × 14 kg (22 août) » — ce qu'elle a fait la dernière fois sur cet exercice. */
+function lastPerfLabel(item: PlayerItemData): string | null {
   const last = item.last;
-  if (!last) return "—";
+  if (!last?.lastDate) return null;
+
   const bits: string[] = [];
   if (last.lastReps) bits.push(`${last.lastReps} reps`);
   if (last.lastWeight) bits.push(formatWeight(last.lastWeight));
   if (bits.length === 0 && last.bestTimeSec) bits.push(formatDuration(last.bestTimeSec));
   if (bits.length === 0 && last.bestDistanceM) bits.push(formatDistance(last.bestDistanceM));
-  const perf = bits.join(" × ") || "réalisé";
-  return last.lastDate ? `${perf} (${formatFrShort(last.lastDate)})` : perf;
+
+  const perf = bits.join(" × ") || "fait";
+  return `${perf} · ${formatFrShort(last.lastDate)}`;
+}
+
+/** Le meilleur jamais réalisé sur cet exercice, toutes séances confondues. */
+function recordLabel_(item: PlayerItemData): string | null {
+  const last = item.last;
+  if (!last) return null;
+
+  if (last.bestWeight) {
+    return last.bestReps
+      ? `${formatWeight(last.bestWeight)} · ${last.bestReps} reps`
+      : formatWeight(last.bestWeight);
+  }
+  if (last.bestTimeSec) return formatDuration(last.bestTimeSec);
+  if (last.bestDistanceM) return formatDistance(last.bestDistanceM);
+  if (last.bestReps) return `${last.bestReps} reps`;
+  return null;
 }
 
 function formatFrShort(iso: string): string {

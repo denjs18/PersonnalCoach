@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { db, exercises } from "@/lib/db";
 import { SCHEMA_STATEMENTS } from "@/lib/db/schema-sql";
 import { EXERCISE_LIBRARY } from "@/lib/exercise-library";
+import { DEFAULT_MET } from "@/lib/constants";
 import { requireCoach } from "@/lib/auth";
 
 export type DatabaseState = {
@@ -64,6 +65,7 @@ export async function initDatabaseAction(): Promise<
           description: ex.description,
           steps: [...ex.steps],
           cues: ex.cues,
+          met: ex.met ?? DEFAULT_MET[ex.category],
           tracking: ex.tracking,
           isCustom: false,
         })),
@@ -77,6 +79,7 @@ export async function initDatabaseAction(): Promise<
           description: sql`excluded.description`,
           steps: sql`excluded.steps`,
           cues: sql`excluded.cues`,
+          met: sql`excluded.met`,
           tracking: sql`excluded.tracking`,
         },
         // On ne touche pas aux exercices que le coach a écrits lui-même.

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db, exercises } from "@/lib/db";
 import { requireCoach } from "@/lib/auth";
+import { DEFAULT_MET, type CategoryKey } from "@/lib/constants";
 import type { Exercise } from "@/lib/db";
 
 export type ExerciseInput = {
@@ -40,7 +41,11 @@ export async function createExerciseAction(
   try {
     const [row] = await db
       .insert(exercises)
-      .values({ ...data, isCustom: true })
+      .values({
+        ...data,
+        met: DEFAULT_MET[(data.category as CategoryKey) in DEFAULT_MET ? (data.category as CategoryKey) : "force"],
+        isCustom: true,
+      })
       .returning();
     revalidatePath("/coach/exercices");
     return { ok: true, exercise: row };

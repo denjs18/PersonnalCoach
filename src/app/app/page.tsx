@@ -162,6 +162,7 @@ export default async function AthleteHome() {
                 <p className="text-[12px] text-faint">
                   {lastDone.scheduledFor ? formatRelativeDay(lastDone.scheduledFor) : ""} ·{" "}
                   {pluralize(lastDone.loggedSets, "série validée", "séries validées")}
+                  {lastDone.calories ? ` · ~${lastDone.calories} kcal` : ""}
                 </p>
               </div>
             </div>

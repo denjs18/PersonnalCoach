@@ -12,6 +12,7 @@ import { neon } from "@neondatabase/serverless";
 import { Pool } from "pg";
 import { config } from "dotenv";
 import { EXERCISE_LIBRARY } from "../src/lib/exercise-library";
+import { DEFAULT_MET } from "../src/lib/constants";
 import { isNeonUrl, sslOptionsFor } from "../src/lib/db/connection";
 import { DROP_STATEMENT, SCHEMA_STATEMENTS } from "../src/lib/db/schema-sql";
 
@@ -75,8 +76,8 @@ async function run() {
 
   for (const ex of EXERCISE_LIBRARY) {
     const rows = (await sql.query(
-      `INSERT INTO exercises (name, category, equipment, muscles, description, steps, cues, tracking, is_custom)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)
+      `INSERT INTO exercises (name, category, equipment, muscles, description, steps, cues, met, tracking, is_custom)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false)
        ON CONFLICT (name) DO UPDATE SET
          category = EXCLUDED.category,
          equipment = EXCLUDED.equipment,
@@ -84,10 +85,21 @@ async function run() {
          description = EXCLUDED.description,
          steps = EXCLUDED.steps,
          cues = EXCLUDED.cues,
+         met = EXCLUDED.met,
          tracking = EXCLUDED.tracking
        WHERE exercises.is_custom = false
        RETURNING (xmax = 0) AS inserted`,
-      [ex.name, ex.category, ex.equipment, ex.muscles, ex.description, ex.steps, ex.cues, ex.tracking],
+      [
+        ex.name,
+        ex.category,
+        ex.equipment,
+        ex.muscles,
+        ex.description,
+        ex.steps,
+        ex.cues,
+        ex.met ?? DEFAULT_MET[ex.category],
+        ex.tracking,
+      ],
     )) as Array<{ inserted: boolean }>;
 
     if (rows[0]?.inserted) created++;

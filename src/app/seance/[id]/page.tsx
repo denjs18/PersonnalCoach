@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Lock } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getFullWorkout, getLastPerformances } from "@/lib/queries";
+import { getFullWorkout, getLastPerformances, getSettings } from "@/lib/queries";
+import { readProfile } from "@/lib/effort";
 import { WorkoutPlayer, type PlayerItemData } from "@/components/player/workout-player";
 import { EmptyState } from "@/components/ui";
 import { formatLongDate } from "@/lib/utils";
@@ -37,10 +38,13 @@ export default async function SeancePage({ params }: { params: Promise<{ id: str
     );
   }
 
-  const lastPerfs = await getLastPerformances(
-    [...new Set(workout.items.map((i) => i.exerciseId))],
-    workout.id,
-  );
+  const [settings, lastPerfs] = await Promise.all([
+    getSettings(),
+    getLastPerformances(
+      [...new Set(workout.items.map((i) => i.exerciseId))],
+      workout.id,
+    ),
+  ]);
 
   const items: PlayerItemData[] = workout.items.map((item) => ({
     id: item.id,
@@ -52,6 +56,7 @@ export default async function SeancePage({ params }: { params: Promise<{ id: str
     cues: item.exercise.cues,
     tracking: item.tracking ?? item.exercise.tracking,
     section: item.section,
+    met: item.exercise.met,
     sets: item.sets,
     targetReps: item.targetReps,
     targetWeight: item.targetWeight,
@@ -87,6 +92,7 @@ export default async function SeancePage({ params }: { params: Promise<{ id: str
           startedAt: workout.startedAt ? workout.startedAt.toISOString() : null,
         }}
         items={items}
+        profile={readProfile(settings)}
         readOnly={workout.status === "done"}
       />
     </main>

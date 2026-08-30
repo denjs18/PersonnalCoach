@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarX2, ChevronRight, Clock, Layers } from "lucide-react";
+import { CalendarX2, ChevronRight, Clock, Flame, Layers } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getCompletedWorkouts, getStats } from "@/lib/queries";
 import { TopBar } from "@/components/nav";
@@ -38,16 +38,30 @@ export default async function HistoriquePage() {
           suffix={stats.totalMinutes >= 60 ? "h" : "min"}
           accent="cyan"
         />
-        <StatCard
-          label="Volume"
-          value={
-            stats.totalVolumeKg >= 1000
-              ? `${(stats.totalVolumeKg / 1000).toFixed(1).replace(".", ",")}`
-              : stats.totalVolumeKg
-          }
-          suffix={stats.totalVolumeKg >= 1000 ? "tonnes" : "kg"}
-          accent="violet"
-        />
+        {stats.totalCalories !== null ? (
+          <StatCard
+            label="Calories"
+            value={
+              stats.totalCalories >= 10000
+                ? `${(stats.totalCalories / 1000).toFixed(1).replace(".", ",")}k`
+                : stats.totalCalories
+            }
+            suffix="kcal"
+            accent="brand"
+            hint="estimation"
+          />
+        ) : (
+          <StatCard
+            label="Volume"
+            value={
+              stats.totalVolumeKg >= 1000
+                ? `${(stats.totalVolumeKg / 1000).toFixed(1).replace(".", ",")}`
+                : stats.totalVolumeKg
+            }
+            suffix={stats.totalVolumeKg >= 1000 ? "tonnes" : "kg"}
+            accent="violet"
+          />
+        )}
       </div>
 
       {sessions.length === 0 ? (
@@ -99,6 +113,11 @@ export default async function HistoriquePage() {
                           <span className="chip">
                             <Clock className="size-3.5" />
                             {formatDuration(session.durationMinutes * 60)}
+                          </span>
+                        ) : null}
+                        {session.calories ? (
+                          <span className="chip border-warn/35 text-warn">
+                            <Flame className="size-3.5" />~{session.calories} kcal
                           </span>
                         ) : null}
                       </div>

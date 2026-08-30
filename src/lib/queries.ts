@@ -1,7 +1,14 @@
+import { cache } from "react";
 import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, lt, or, sql } from "drizzle-orm";
 import { db, exercises, setLogs, settings, workoutItems, workouts } from "@/lib/db";
 import type { Exercise, SetLog, Workout, WorkoutItem } from "@/lib/db";
 import { startOfWeekISO, todayISO } from "@/lib/utils";
+import {
+  estimateCalories,
+  isProfileComplete,
+  readProfile,
+  type EffortEntry,
+} from "@/lib/effort";
 
 export type ItemWithExercise = WorkoutItem & { exercise: Exercise };
 export type FullWorkout = Workout & {
@@ -66,7 +73,66 @@ export async function getFullWorkout(id: string): Promise<FullWorkout | null> {
   };
 }
 
-export type WorkoutSummary = Workout & { exerciseCount: number; loggedSets: number };
+export type WorkoutSummary = Workout & {
+  exerciseCount: number;
+  loggedSets: number;
+  /** Estimation, null si le profil physique n'est pas renseigné. */
+  calories: number | null;
+};
+
+/**
+ * Reconstruit les séries réalisées d'un lot de séances sous la forme attendue
+ * par le calcul d'effort. Permet d'estimer durée et calories pour n'importe
+ * quelle séance, y compris celles terminées avant l'ajout de la fonction.
+ */
+async function effortEntriesByWorkout(
+  workoutIds: string[],
+): Promise<Map<string, EffortEntry[]>> {
+  const map = new Map<string, EffortEntry[]>();
+  if (workoutIds.length === 0) return map;
+
+  const rows = await db
+    .select({
+      workoutId: setLogs.workoutId,
+      itemId: workoutItems.id,
+      category: exercises.category,
+      met: exercises.met,
+      restSec: workoutItems.restSec,
+      targetTimeSec: workoutItems.targetTimeSec,
+      targetReps: workoutItems.targetReps,
+      reps: setLogs.reps,
+      weightKg: setLogs.weightKg,
+      timeSec: setLogs.timeSec,
+      distanceM: setLogs.distanceM,
+    })
+    .from(setLogs)
+    .innerJoin(workoutItems, eq(workoutItems.id, setLogs.workoutItemId))
+    .innerJoin(exercises, eq(exercises.id, setLogs.exerciseId))
+    .where(and(inArray(setLogs.workoutId, workoutIds), eq(setLogs.done, true)))
+    .orderBy(asc(workoutItems.position), asc(setLogs.setNumber));
+
+  for (const row of rows) {
+    const entry: EffortEntry = {
+      item: {
+        id: row.itemId,
+        category: row.category,
+        met: row.met,
+        restSec: row.restSec,
+        targetTimeSec: row.targetTimeSec,
+        targetReps: row.targetReps,
+      },
+      set: {
+        reps: row.reps,
+        weightKg: row.weightKg,
+        timeSec: row.timeSec,
+        distanceM: row.distanceM,
+        done: true,
+      },
+    };
+    map.set(row.workoutId, [...(map.get(row.workoutId) ?? []), entry]);
+  }
+  return map;
+}
 
 async function summarize(list: Workout[]): Promise<WorkoutSummary[]> {
   if (list.length === 0) return [];
@@ -87,11 +153,24 @@ async function summarize(list: Workout[]): Promise<WorkoutSummary[]> {
   const countMap = new Map(counts.map((c) => [c.workoutId, c.n]));
   const logMap = new Map(logged.map((c) => [c.workoutId, c.n]));
 
-  return list.map((w) => ({
-    ...w,
-    exerciseCount: countMap.get(w.id) ?? 0,
-    loggedSets: logMap.get(w.id) ?? 0,
-  }));
+  // Inutile d'aller chercher les séries d'une liste qui n'en contient aucune
+  // (séances à venir, brouillons…).
+  const withLogs = [...logMap.keys()];
+  const profile = readProfile(await getSettings());
+  const effort =
+    withLogs.length > 0 && isProfileComplete(profile)
+      ? await effortEntriesByWorkout(withLogs)
+      : new Map<string, EffortEntry[]>();
+
+  return list.map((w) => {
+    const entries = effort.get(w.id);
+    return {
+      ...w,
+      exerciseCount: countMap.get(w.id) ?? 0,
+      loggedSets: logMap.get(w.id) ?? 0,
+      calories: entries ? estimateCalories(entries, profile) : null,
+    };
+  });
 }
 
 /** Séances publiées et pas encore terminées, à partir d'aujourd'hui. */
@@ -187,11 +266,14 @@ export type Stats = {
   totalMinutes: number;
   lastSessionDate: string | null;
   sessionsThisWeek: number;
+  /** Estimation cumulée, null si le profil physique n'est pas renseigné. */
+  totalCalories: number | null;
 };
 
 export async function getStats(): Promise<Stats> {
   const done = await db
     .select({
+      id: workouts.id,
       scheduledFor: workouts.scheduledFor,
       completedAt: workouts.completedAt,
       durationMinutes: workouts.durationMinutes,
@@ -206,6 +288,18 @@ export async function getStats(): Promise<Stats> {
     })
     .from(setLogs)
     .where(eq(setLogs.done, true));
+
+  // Les calories sont recalculées à chaque affichage : toute séance déjà
+  // terminée en profite, et un changement de poids met le passé à jour.
+  const profile = readProfile(await getSettings());
+  let totalCalories: number | null = null;
+  if (isProfileComplete(profile) && done.length > 0) {
+    const effort = await effortEntriesByWorkout(done.map((w) => w.id));
+    totalCalories = 0;
+    for (const entries of effort.values()) {
+      totalCalories += estimateCalories(entries, profile) ?? 0;
+    }
+  }
 
   const dates = done
     .map((w) => w.scheduledFor ?? (w.completedAt ? w.completedAt.toISOString().slice(0, 10) : null))
@@ -239,6 +333,7 @@ export async function getStats(): Promise<Stats> {
     totalVolumeKg: Math.round(volume?.total ?? 0),
     totalMinutes: done.reduce((acc, w) => acc + (w.durationMinutes ?? 0), 0),
     lastSessionDate: dates[0] ?? null,
+    totalCalories,
   };
 }
 
@@ -388,9 +483,16 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   athlete_name: "",
   goal_per_week: "3",
   motivation: "",
+  // Profil physique : sert uniquement à estimer les calories dépensées.
+  athlete_sex: "",
+  athlete_height_cm: "",
+  athlete_weight_kg: "",
+  athlete_age: "",
 };
 
-export async function getSettings(): Promise<Record<string, string>> {
+export const getSettings = cache(async function getSettings(): Promise<
+  Record<string, string>
+> {
   try {
     const rows = await db.select().from(settings);
     const map = { ...DEFAULT_SETTINGS };
@@ -399,4 +501,4 @@ export async function getSettings(): Promise<Record<string, string>> {
   } catch {
     return { ...DEFAULT_SETTINGS };
   }
-}
+});
