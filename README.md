@@ -22,6 +22,7 @@ exercices à deux**, avec du rameur / vélo à l'échauffement. Peu de muscu iso
 | **Accueil** | La prochaine séance en grand, objectif de la semaine, série de semaines, séances à rattraper |
 | **Séance** | Exercices par bloc (échauffement / principal / finisher / retour au calme), saisie poids + reps série par série, chrono de repos, consignes du coach, dernière perf et record par exercice |
 | **Historique** | Toutes les séances terminées, par mois, avec ressenti, durée et calories |
+| **Niveaux** | Niveau et points d'expérience, rang par famille d'exercices, 29 accomplissements à débloquer |
 | **Progression** | Records par exercice, courbes de charge et de volume, détail séance par séance |
 
 Pendant la séance : sauvegarde automatique, pré-remplissage avec l'objectif du
@@ -50,6 +51,36 @@ choisit ses exercices — pratique quand on ne connaît pas encore tout.
 
 Une séance reste invisible pour elle tant qu'elle est en **brouillon**. Un bouton
 « Publier pour elle » la rend visible immédiatement.
+
+---
+
+## 🏆 Niveaux et accomplissements
+
+Un système de progression pour donner envie de revenir, entièrement **dérivé
+des séances déjà enregistrées** : aucune table supplémentaire, aucune écriture,
+rien à migrer. Tout est recalculé à l'affichage, donc les séances faites avant
+son arrivée comptent d'emblée.
+
+**Les points.** Chaque séance terminée en rapporte : 100 pour l'avoir faite,
+10 par série validée, un bonus selon l'effort fourni, et 50 de plus si aucune
+série prévue n'a été laissée de côté. La régularité pèse plus que la
+performance — c'est délibéré.
+
+**Les niveaux.** Douze paliers, de *Premiers pas* à *Légende*. Les premiers
+arrivent vite : c'est au début qu'on a besoin d'élan.
+
+**Les rangs par famille.** Chacune des huit familles d'exercices (force,
+mouvement, à deux, gainage, cardio, explosivité, échauffement, mobilité) monte
+en rang avec les séries réalisées, de *Novice* à *Maîtresse*. Un coup d'œil
+suffit pour voir ce qui est bien travaillé et ce qui est négligé.
+
+**Les accomplissements.** 29 trophées répartis en quatre familles — régularité,
+effort, variété, endurance. Les verrouillés affichent leur progression, ce qui
+donne un objectif concret plutôt qu'une case vide.
+
+À la fin d'une séance, l'écran de félicitations annonce les points gagnés, le
+passage de niveau éventuel et les trophées débloqués — calculés en comparant la
+progression avant et après cette séance.
 
 ---
 
@@ -237,6 +268,7 @@ src/
     db/index.ts             connexion, Neon en HTTP ou Postgres en TCP
     actions/                Server Actions (séances, séries, exercices, base)
     effort.ts               durée estimée et calories (partagé client/serveur)
+    levels.ts               niveaux, rangs et accomplissements (fonctions pures)
     queries.ts              lectures (séances, stats, progression)
     exercise-library.ts     les 119 exercices de départ
 ```

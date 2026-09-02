@@ -4,6 +4,16 @@ import { db, exercises, setLogs, settings, workoutItems, workouts } from "@/lib/
 import type { Exercise, SetLog, Workout, WorkoutItem } from "@/lib/db";
 import { startOfWeekISO, todayISO } from "@/lib/utils";
 import {
+  badgeStates,
+  categoryProgress,
+  levelFromXp,
+  sessionXp,
+  type BadgeState,
+  type CategoryProgress,
+  type LevelProgress,
+  type ProgressionStats,
+} from "@/lib/levels";
+import {
   estimateCalories,
   isProfileComplete,
   readProfile,
@@ -512,4 +522,209 @@ export const getSettings = cache(async function getSettings(): Promise<
   } catch {
     return { ...DEFAULT_SETTINGS };
   }
+});
+
+
+/* ------------------------------ Progression ------------------------------ */
+
+export type ProgressionData = {
+  stats: ProgressionStats;
+  xp: number;
+  level: LevelProgress;
+  categories: CategoryProgress[];
+  badges: BadgeState[];
+  /** XP rapportés par chaque séance, la plus récente d'abord. */
+  recentSessions: Array<{ id: string; title: string; date: string | null; xp: number }>;
+};
+
+/**
+ * Reconstruit tout le système de progression depuis les séances terminées.
+ *
+ * Rien n'est stocké : niveaux, rangs et accomplissements sont recalculés à
+ * chaque affichage. Les séances déjà enregistrées comptent donc d'emblée, et
+ * aucune donnée existante n'est modifiée.
+ */
+export const getProgression = cache(async function getProgression(
+  /** Séance à ignorer, pour comparer l'avant et l'après d'une séance en cours. */
+  excludeWorkoutId?: string,
+): Promise<ProgressionData> {
+  const stats: ProgressionStats = {
+    sessions: 0,
+    totalSets: 0,
+    totalVolumeKg: 0,
+    totalCalories: 0,
+    totalMinutes: 0,
+    weekStreak: 0,
+    bestWeekStreak: 0,
+    setsByCategory: {},
+    distinctExercises: 0,
+    duoSessions: 0,
+    longestSessionMinutes: 0,
+    perfectSessions: 0,
+    bestWeekSessions: 0,
+  };
+
+  const empty: ProgressionData = {
+    stats,
+    xp: 0,
+    level: levelFromXp(0),
+    categories: categoryProgress(stats),
+    badges: badgeStates(stats),
+    recentSessions: [],
+  };
+
+  let sessions: Array<{
+    id: string;
+    title: string;
+    scheduledFor: string | null;
+    completedAt: Date | null;
+    durationMinutes: number | null;
+  }>;
+
+  try {
+    sessions = await db
+      .select({
+        id: workouts.id,
+        title: workouts.title,
+        scheduledFor: workouts.scheduledFor,
+        completedAt: workouts.completedAt,
+        durationMinutes: workouts.durationMinutes,
+      })
+      .from(workouts)
+      .where(and(eq(workouts.isTemplate, false), eq(workouts.status, "done")))
+      .orderBy(desc(workouts.scheduledFor));
+  } catch {
+    return empty;
+  }
+
+  if (excludeWorkoutId) sessions = sessions.filter((w) => w.id !== excludeWorkoutId);
+  if (sessions.length === 0) return empty;
+
+  const ids = sessions.map((w) => w.id);
+
+  // Une ligne par série validée, avec sa famille d'exercices.
+  const logs = await db
+    .select({
+      workoutId: setLogs.workoutId,
+      exerciseId: setLogs.exerciseId,
+      category: exercises.category,
+      reps: setLogs.reps,
+      weightKg: setLogs.weightKg,
+    })
+    .from(setLogs)
+    .innerJoin(exercises, eq(exercises.id, setLogs.exerciseId))
+    .where(and(inArray(setLogs.workoutId, ids), eq(setLogs.done, true)));
+
+  // Séries prévues par le coach, pour savoir si la séance a été bouclée.
+  const planned = await db
+    .select({
+      workoutId: workoutItems.workoutId,
+      sets: sql<number>`coalesce(sum(${workoutItems.sets}), 0)::int`,
+    })
+    .from(workoutItems)
+    .where(inArray(workoutItems.workoutId, ids))
+    .groupBy(workoutItems.workoutId);
+
+  const plannedMap = new Map(planned.map((p) => [p.workoutId, p.sets]));
+  const profile = readProfile(await getSettings());
+  const effort = isProfileComplete(profile)
+    ? await effortEntriesByWorkout(ids)
+    : new Map<string, EffortEntry[]>();
+
+  const loggedByWorkout = new Map<string, number>();
+  const volumeByWorkout = new Map<string, number>();
+  const duoWorkouts = new Set<string>();
+  const distinctExercises = new Set<string>();
+
+  for (const log of logs) {
+    stats.totalSets++;
+    loggedByWorkout.set(log.workoutId, (loggedByWorkout.get(log.workoutId) ?? 0) + 1);
+    stats.setsByCategory[log.category] = (stats.setsByCategory[log.category] ?? 0) + 1;
+    distinctExercises.add(log.exerciseId);
+    if (log.category === "duo") duoWorkouts.add(log.workoutId);
+
+    const volume = (log.reps ?? 0) * (log.weightKg ?? 0);
+    if (volume > 0) {
+      stats.totalVolumeKg += volume;
+      volumeByWorkout.set(log.workoutId, (volumeByWorkout.get(log.workoutId) ?? 0) + volume);
+    }
+  }
+
+  stats.sessions = sessions.length;
+  stats.distinctExercises = distinctExercises.size;
+  stats.duoSessions = duoWorkouts.size;
+  stats.totalVolumeKg = Math.round(stats.totalVolumeKg);
+
+  const recentSessions: ProgressionData["recentSessions"] = [];
+  let xp = 0;
+
+  for (const session of sessions) {
+    const loggedSets = loggedByWorkout.get(session.id) ?? 0;
+    const minutes = session.durationMinutes ?? 0;
+    const entries = effort.get(session.id);
+    const calories = entries
+      ? estimateCalories(entries, profile, minutes ? minutes * 60 : null)
+      : null;
+
+    stats.totalMinutes += minutes;
+    stats.totalCalories += calories ?? 0;
+    stats.longestSessionMinutes = Math.max(stats.longestSessionMinutes, minutes);
+
+    const plannedSets = plannedMap.get(session.id) ?? 0;
+    if (plannedSets > 0 && loggedSets >= plannedSets) stats.perfectSessions++;
+
+    const earned = sessionXp({
+      loggedSets,
+      plannedSets,
+      calories,
+      volumeKg: volumeByWorkout.get(session.id) ?? 0,
+    }).total;
+    xp += earned;
+
+    recentSessions.push({
+      id: session.id,
+      title: session.title,
+      date: session.scheduledFor,
+      xp: earned,
+    });
+  }
+
+  /* --- Régularité : séries de semaines et meilleure semaine --- */
+  const dates = sessions
+    .map((w) => w.scheduledFor ?? (w.completedAt ? w.completedAt.toISOString().slice(0, 10) : null))
+    .filter((d): d is string => Boolean(d));
+
+  const perWeek = new Map<string, number>();
+  for (const date of dates) {
+    const week = startOfWeekISO(date);
+    perWeek.set(week, (perWeek.get(week) ?? 0) + 1);
+  }
+  stats.bestWeekSessions = Math.max(0, ...perWeek.values());
+
+  const weeks = [...perWeek.keys()].sort();
+  let run = 0;
+  let best = 0;
+  for (let i = 0; i < weeks.length; i++) {
+    run = i > 0 && shiftWeek(weeks[i], -1) === weeks[i - 1] ? run + 1 : 1;
+    best = Math.max(best, run);
+  }
+  stats.bestWeekStreak = best;
+
+  const thisWeek = startOfWeekISO(todayISO());
+  let cursor = perWeek.has(thisWeek) ? thisWeek : shiftWeek(thisWeek, -1);
+  while (perWeek.has(cursor)) {
+    stats.weekStreak++;
+    cursor = shiftWeek(cursor, -1);
+  }
+
+  stats.totalCalories = Math.round(stats.totalCalories);
+
+  return {
+    stats,
+    xp,
+    level: levelFromXp(xp),
+    categories: categoryProgress(stats),
+    badges: badgeStates(stats),
+    recentSessions: recentSessions.slice(0, 5),
+  };
 });

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { db, setLogs, workoutItems, workouts } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
+import { getProgression } from "@/lib/queries";
+import { newlyEarned, type BadgeState, type LevelProgress } from "@/lib/levels";
 import { todayISO } from "@/lib/utils";
 
 export type SetEntry = {
@@ -98,11 +100,23 @@ export async function trimSetLogsAction(workoutItemId: string, maxSetNumber: num
   return { ok: true as const };
 }
 
+export type FinishOutcome = {
+  xpGained: number;
+  level: LevelProgress;
+  leveledUp: boolean;
+  newBadges: Array<Pick<BadgeState, "id" | "title" | "description" | "emoji">>;
+};
+
 export async function finishWorkoutAction(
   workoutId: string,
   payload: { rating: number | null; note: string | null; durationMinutes: number | null },
-) {
+): Promise<{ ok: true; outcome: FinishOutcome | null }> {
   await requireRole();
+
+  // Photo de la progression *avant* que cette séance ne compte, pour savoir
+  // ce qu'elle vient de débloquer.
+  const before = await getProgression(workoutId);
+
   await db
     .update(workouts)
     .set({
@@ -118,7 +132,28 @@ export async function finishWorkoutAction(
   revalidatePath("/app");
   revalidatePath("/app/historique");
   revalidatePath("/app/progression");
+  revalidatePath("/app/niveaux");
   revalidatePath("/coach");
   revalidatePath("/coach/suivi");
-  return { ok: true as const };
+
+  let outcome: FinishOutcome | null = null;
+  try {
+    const after = await getProgression();
+    outcome = {
+      xpGained: Math.max(0, after.xp - before.xp),
+      level: after.level,
+      leveledUp: after.level.current.level > before.level.current.level,
+      newBadges: newlyEarned(before.stats, after.stats).map((b) => ({
+        id: b.id,
+        title: b.title,
+        description: b.description,
+        emoji: b.emoji,
+      })),
+    };
+  } catch {
+    // La progression est un bonus : son échec ne doit pas empêcher de valider.
+    outcome = null;
+  }
+
+  return { ok: true, outcome };
 }

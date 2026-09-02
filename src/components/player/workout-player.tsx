@@ -22,6 +22,7 @@ import {
   saveSetLogsAction,
   startWorkoutAction,
   trimSetLogsAction,
+  type FinishOutcome,
   type SetEntry,
 } from "@/lib/actions/logs";
 import { MOODS, SECTIONS, type SectionKey } from "@/lib/constants";
@@ -315,6 +316,7 @@ export function WorkoutPlayer({
     volume: number;
     minutes: number;
     calories: number | null;
+    outcome: FinishOutcome | null;
   }>(null);
 
   useEffect(() => {
@@ -528,7 +530,11 @@ export function WorkoutPlayer({
 
   const finish = async (rating: number | null, note: string, minutes: number) => {
     await flush();
-    await finishWorkoutAction(workout.id, { rating, note, durationMinutes: minutes });
+    const result = await finishWorkoutAction(workout.id, {
+      rating,
+      note,
+      durationMinutes: minutes,
+    });
     setShowFinish(false);
     setCelebration({
       sets: totals.done,
@@ -541,6 +547,7 @@ export function WorkoutPlayer({
         profile,
         minutes * 60,
       ),
+      outcome: result.outcome,
     });
     navigator.vibrate?.([40, 60, 40, 60, 120]);
   };
@@ -1143,12 +1150,14 @@ function Celebration({
   volume,
   minutes,
   calories,
+  outcome,
   title,
 }: {
   sets: number;
   volume: number;
   minutes: number;
   calories: number | null;
+  outcome: FinishOutcome | null;
   title: string;
 }) {
   const pieces = useMemo(
@@ -1226,10 +1235,68 @@ function Celebration({
           </div>
         </div>
 
+        {outcome ? (
+          <div className="mt-6 space-y-3 text-left">
+            <div className="card overflow-hidden">
+              <div className="flex items-center gap-3 p-3.5">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand/15 text-xl">
+                  {outcome.level.current.emoji}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand">
+                    +{outcome.xpGained} points
+                  </p>
+                  <p className="truncate text-sm font-bold">
+                    {outcome.leveledUp ? "Niveau " : ""}
+                    {outcome.level.current.level} · {outcome.level.current.title}
+                  </p>
+                </div>
+                {outcome.leveledUp ? (
+                  <span className="shrink-0 rounded-full bg-energy/15 px-2.5 py-1 text-[11px] font-extrabold text-energy">
+                    NIVEAU ↑
+                  </span>
+                ) : null}
+              </div>
+              {outcome.level.next ? (
+                <div className="px-3.5 pb-3.5">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-brand to-brand-2"
+                      style={{ width: `${Math.max(3, outcome.level.ratio * 100)}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-faint">
+                    Encore {outcome.level.xpForNextLevel - outcome.level.xpIntoLevel} points pour{" "}
+                    {outcome.level.next.title}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            {outcome.newBadges.map((badge) => (
+              <div
+                key={badge.id}
+                className="card flex animate-[var(--animate-pop)] items-center gap-3 border-energy/40 bg-energy/[0.07] p-3.5"
+              >
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-energy/15 text-xl">
+                  {badge.emoji}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-energy">
+                    Trophée débloqué
+                  </p>
+                  <p className="truncate text-sm font-bold">{badge.title}</p>
+                  <p className="truncate text-[11.5px] text-faint">{badge.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <Link href="/app" className="btn-primary mt-8 w-full">
           Retour à l'accueil
         </Link>
-        <Link href="/app/progression" className="btn-quiet mt-1 w-full">
+        <Link href="/app/niveaux" className="btn-quiet mt-1 w-full">
           Voir ma progression
         </Link>
       </div>

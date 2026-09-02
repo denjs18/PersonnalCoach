@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, Dumbbell, Sparkles, TrendingUp } from "lucide-react";
+import { CalendarClock, CheckCircle2, Dumbbell, Sparkles, Trophy } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import {
   getCompletedWorkouts,
   getMissedWorkouts,
+  getProgression,
   getSettings,
   getStats,
   getUpcomingWorkouts,
 } from "@/lib/queries";
+import { LevelCard } from "@/components/progression";
 import { NextWorkoutHero, WorkoutCard } from "@/components/workout-card";
 import { EmptyState, ProgressBar, SectionHeading, StatCard } from "@/components/ui";
 import { TopBar } from "@/components/nav";
@@ -44,6 +46,7 @@ export default async function AthleteHome() {
     getCompletedWorkouts(3),
     getStats(),
     getSettings(),
+    getProgression(),
   ]).catch(() => null);
 
   // La base n'est pas encore installée : inutile de l'inquiéter avec une erreur.
@@ -60,7 +63,7 @@ export default async function AthleteHome() {
     );
   }
 
-  const [upcoming, missed, completed, stats, settings] = data;
+  const [upcoming, missed, completed, stats, settings, progression] = data;
 
   const today = todayISO();
   const name = settings.athlete_name?.trim();
@@ -120,6 +123,12 @@ export default async function AthleteHome() {
         <StatCard label="Total" value={stats.totalSessions} suffix="séances" accent="violet" />
       </div>
 
+      {progression.stats.sessions > 0 ? (
+        <Link href="/app/niveaux" className="mt-4 block transition active:scale-[0.99]">
+          <LevelCard level={progression.level} compact />
+        </Link>
+      ) : null}
+
       {missed.length > 0 ? (
         <section className="mt-7">
           <SectionHeading title="À rattraper" />
@@ -171,9 +180,9 @@ export default async function AthleteHome() {
       ) : null}
 
       <section className="mt-7 grid grid-cols-2 gap-2.5">
-        <Link href="/app/progression" className="card card-hover flex items-center gap-2.5 p-3.5">
-          <TrendingUp className="size-5 text-brand-2" />
-          <span className="text-sm font-semibold">Ma progression</span>
+        <Link href="/app/niveaux" className="card card-hover flex items-center gap-2.5 p-3.5">
+          <Trophy className="size-5 text-energy" />
+          <span className="text-sm font-semibold">Mes trophées</span>
         </Link>
         <Link href="/app/historique" className="card card-hover flex items-center gap-2.5 p-3.5">
           <Dumbbell className="size-5 text-brand-3" />

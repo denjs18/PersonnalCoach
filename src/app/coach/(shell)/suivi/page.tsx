@@ -4,10 +4,12 @@ import { requireCoach } from "@/lib/auth";
 import {
   getCompletedWorkouts,
   getExerciseProgress,
+  getProgression,
   getStats,
   getTrackedExercises,
 } from "@/lib/queries";
 import { TopBar } from "@/components/nav";
+import { LevelCard } from "@/components/progression";
 import { CategoryBadge, EmptyState, SectionHeading, StatCard } from "@/components/ui";
 import { Sparkline } from "@/components/progress-chart";
 import { buildSeries, formatDelta } from "@/lib/progress";
@@ -18,10 +20,11 @@ export const dynamic = "force-dynamic";
 
 export default async function SuiviPage() {
   const role = await requireCoach();
-  const [sessions, tracked, stats] = await Promise.all([
+  const [sessions, tracked, stats, progression] = await Promise.all([
     getCompletedWorkouts(20),
     getTrackedExercises(),
     getStats(),
+    getProgression(),
   ]);
 
   const series = await Promise.all(
@@ -36,6 +39,12 @@ export default async function SuiviPage() {
   return (
     <>
       <TopBar title="Suivi" subtitle="Ce qu'elle a réellement fait" role={role} />
+
+      {progression.stats.sessions > 0 ? (
+        <div className="mb-4">
+          <LevelCard level={progression.level} compact />
+        </div>
+      ) : null}
 
       <div className="mb-6 grid grid-cols-3 gap-2.5">
         <StatCard label="Séances" value={stats.totalSessions} accent="brand" />

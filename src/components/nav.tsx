@@ -10,6 +10,7 @@ import {
   LineChart,
   Settings,
   Sparkles,
+  Trophy,
   UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,8 +19,9 @@ type NavItem = { href: string; label: string; icon: typeof Dumbbell; exact?: boo
 
 const ATHLETE_ITEMS: NavItem[] = [
   { href: "/app", label: "Séances", icon: Dumbbell, exact: true },
-  { href: "/app/historique", label: "Historique", icon: History },
+  { href: "/app/niveaux", label: "Niveaux", icon: Trophy },
   { href: "/app/progression", label: "Progrès", icon: LineChart },
+  { href: "/app/historique", label: "Historique", icon: History },
 ];
 
 const COACH_ITEMS: NavItem[] = [
