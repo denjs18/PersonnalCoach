@@ -189,3 +189,59 @@ export function BadgeGrid({ badges }: { badges: BadgeState[] }) {
     </div>
   );
 }
+
+
+/**
+ * Les trophées les plus proches d'être débloqués. Côté coach, c'est plus utile
+ * que la grille complète : ça donne des leviers de motivation immédiats.
+ */
+export function UpcomingBadges({ badges, limit = 4 }: { badges: BadgeState[]; limit?: number }) {
+  const soon = badges
+    .filter((b) => !b.earned && b.current > 0)
+    .sort((a, b) => b.ratio - a.ratio)
+    .slice(0, limit);
+
+  if (soon.length === 0) return null;
+
+  const remaining = (b: BadgeState) => {
+    const left = Math.max(1, Math.ceil(b.target - b.current));
+    return left.toLocaleString("fr-FR");
+  };
+
+  return (
+    <div className="space-y-2">
+      {soon.map((badge) => (
+        <div key={badge.id} className="card p-3.5">
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-base grayscale">
+              {badge.emoji}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13.5px] font-bold leading-tight">{badge.title}</p>
+              <p className="truncate text-[11.5px] text-faint">{badge.description}</p>
+            </div>
+            <span className="shrink-0 text-right text-[11.5px] font-bold tabular-nums text-brand">
+              +{remaining(badge)}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-brand to-brand-2 transition-[width] duration-700"
+              style={{ width: `${Math.max(3, badge.ratio * 100)}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Une famille d'exercices nettement en retard sur les autres, s'il y en a une. */
+export function neglectedCategory(categories: CategoryProgress[]): CategoryProgress | null {
+  const worked = categories.filter((c) => c.sets > 0);
+  if (worked.length < 3) return null;
+
+  const leader = categories[0];
+  const last = categories[categories.length - 1];
+  return last.sets * 4 < leader.sets ? last : null;
+}

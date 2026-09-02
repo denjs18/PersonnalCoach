@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { ChevronRight, Clock, Flame, Layers, LineChart, MessageCircle } from "lucide-react";
+import {
+  ChevronRight,
+  Clock,
+  Flame,
+  Layers,
+  LineChart,
+  MessageCircle,
+  Target,
+  Trophy,
+} from "lucide-react";
 import { requireCoach } from "@/lib/auth";
 import {
   getCompletedWorkouts,
@@ -9,7 +18,12 @@ import {
   getTrackedExercises,
 } from "@/lib/queries";
 import { TopBar } from "@/components/nav";
-import { LevelCard } from "@/components/progression";
+import {
+  CategoryRanks,
+  LevelCard,
+  UpcomingBadges,
+  neglectedCategory,
+} from "@/components/progression";
 import { CategoryBadge, EmptyState, SectionHeading, StatCard } from "@/components/ui";
 import { Sparkline } from "@/components/progress-chart";
 import { buildSeries, formatDelta } from "@/lib/progress";
@@ -35,6 +49,8 @@ export default async function SuiviPage() {
   );
 
   const withFeedback = sessions.filter((s) => s.athleteNote || s.athleteRating);
+  const earnedBadges = progression.badges.filter((b) => b.earned).length;
+  const neglected = neglectedCategory(progression.categories);
 
   return (
     <>
@@ -42,7 +58,9 @@ export default async function SuiviPage() {
 
       {progression.stats.sessions > 0 ? (
         <div className="mb-4">
-          <LevelCard level={progression.level} compact />
+          <Link href="/app/niveaux" className="block transition active:scale-[0.99]">
+            <LevelCard level={progression.level} compact />
+          </Link>
         </div>
       ) : null}
 
@@ -160,6 +178,43 @@ export default async function SuiviPage() {
           </div>
         )}
       </section>
+
+      {progression.stats.sessions > 0 ? (
+        <>
+          <section className="mb-7">
+            <SectionHeading
+              title="Ce qu'elle travaille"
+              icon={<Target className="size-3.5" />}
+              action={
+                <Link href="/app/niveaux" className="text-xs font-semibold text-brand">
+                  Tout voir
+                </Link>
+              }
+            />
+            {neglected ? (
+              <p className="mb-2.5 rounded-xl border border-warn/30 bg-warn/10 p-2.5 text-[12.5px] leading-relaxed text-warn">
+                <strong>{neglected.label}</strong>{" "}
+                {neglected.sets === 0
+                  ? "n'a jamais été travaillé"
+                  : `est nettement en retard (${neglected.sets} série${neglected.sets > 1 ? "s" : ""})`}
+                . À glisser dans une prochaine séance ?
+              </p>
+            ) : null}
+            <CategoryRanks categories={progression.categories} />
+          </section>
+
+          <section className="mb-7">
+            <SectionHeading
+              title={`Trophées · ${earnedBadges}/${progression.badges.length}`}
+              icon={<Trophy className="size-3.5" />}
+            />
+            <p className="mb-2.5 text-[12px] leading-relaxed text-faint">
+              Les plus proches d'être débloqués — de quoi lui donner un objectif concret.
+            </p>
+            <UpcomingBadges badges={progression.badges} />
+          </section>
+        </>
+      ) : null}
 
       {series.length > 0 ? (
         <section className="mb-7">

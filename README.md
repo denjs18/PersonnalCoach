@@ -46,7 +46,7 @@ choisit ses exercices — pratique quand on ne connaît pas encore tout.
 | **Planning** | Bandeau des 3 prochaines semaines, brouillons, séances prêtes, séances faites, modèles |
 | **Composer** | Titre, date, focus, intensité, mot du coach, puis les exercices : séries, reps, poids indicatif, repos, superset, consigne personnalisée. Sur une séance déjà faite : correction de la durée, du ressenti et de la note |
 | **Bibliothèque** | 119 exercices de départ + les tiens, chacun avec son pas-à-pas. Recherche, filtres par catégorie et matériel, création, modification, archivage |
-| **Suivi** | Ce qu'elle a réellement fait, ses retours, sa progression par exercice |
+| **Suivi** | Ce qu'elle a réellement fait, ses retours, son niveau, ses rangs par famille, les trophées les plus proches, sa progression par exercice |
 | **Réglages** | Son prénom, objectif hebdo, message de motivation, profil physique pour les calories |
 
 Une séance reste invisible pour elle tant qu'elle est en **brouillon**. Un bouton
@@ -81,6 +81,11 @@ donne un objectif concret plutôt qu'une case vide.
 À la fin d'une séance, l'écran de félicitations annonce les points gagnés, le
 passage de niveau éventuel et les trophées débloqués — calculés en comparant la
 progression avant et après cette séance.
+
+**Côté coach**, le suivi reprend le niveau, les rangs par famille et les
+trophées les plus proches d'être débloqués. Une famille nettement en retard sur
+les autres est signalée : c'est le meilleur indicateur de ce qu'il manque dans
+la programmation. Le détail complet reste accessible d'un lien.
 
 ---
 
