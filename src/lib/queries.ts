@@ -114,6 +114,7 @@ async function effortEntriesByWorkout(
       equipment: exercises.equipment,
       restSec: workoutItems.restSec,
       targetTimeSec: workoutItems.targetTimeSec,
+      targetDistanceM: workoutItems.targetDistanceM,
       targetReps: workoutItems.targetReps,
       reps: setLogs.reps,
       weightKg: setLogs.weightKg,
@@ -135,6 +136,7 @@ async function effortEntriesByWorkout(
         equipment: row.equipment,
         restSec: row.restSec,
         targetTimeSec: row.targetTimeSec,
+        targetDistanceM: row.targetDistanceM,
         targetReps: row.targetReps,
       },
       set: {

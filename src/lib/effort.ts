@@ -73,6 +73,7 @@ export type EffortItem = {
   equipment?: string[];
   restSec: number | null;
   targetTimeSec: number | null;
+  targetDistanceM?: number | null;
   targetReps: string | null;
 };
 
@@ -108,6 +109,11 @@ export function setEffortSeconds(item: EffortItem, set: EffortSet): number {
 
   const targetReps = parseFirstNumber(item.targetReps);
   if (targetReps) return Math.round(targetReps * perRep);
+
+  // Un déplacement chargé (traîneau, port de charge) : ni durée ni répétitions,
+  // mais une distance. On l'estime à une allure de marche lestée.
+  const distance = set.distanceM ?? item.targetDistanceM;
+  if (distance && distance > 0) return Math.round((distance / 45) * 60);
 
   return 40;
 }
@@ -171,6 +177,7 @@ export function measuredWorkSeconds(
 /** Quelle table d'allure appliquer, d'après le matériel de l'exercice. */
 function paceTableFor(item: EffortItem): Array<[number, number]> | null {
   const equipment = item.equipment ?? [];
+  if (equipment.includes("traineau")) return null; // charge tractée : l'allure ne dit rien
   if (equipment.includes("rameur")) return PACE_MET.rameur;
   if (equipment.includes("velo")) return PACE_MET.velo;
   // Pas de machine : une distance parcourue, c'est de la marche ou de la course.

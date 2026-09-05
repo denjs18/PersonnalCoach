@@ -896,9 +896,12 @@ function ExerciseCard({
 function SetHeader({ tracking }: { tracking: string }) {
   const units: string[] = [];
   if (needsReps(tracking)) units.push("reps");
-  if (needsWeight(tracking)) units.push("kg");
-  if (needsTime(tracking)) units.push("min : sec");
-  if (needsDistance(tracking)) units.push("mètres");
+  if (tracking === "distance_weight") units.push("mètres", "kg");
+  else {
+    if (needsWeight(tracking)) units.push("kg");
+    if (needsTime(tracking)) units.push("min : sec");
+    if (needsDistance(tracking)) units.push("mètres");
+  }
 
   return (
     <div className="flex items-center gap-2 px-2 pb-0.5" aria-hidden>
@@ -969,35 +972,58 @@ function SetRow({
             ariaLabel={`Répétitions — ${context}`}
           />
         ) : null}
-        {needsWeight(tracking) ? (
-          <Stepper
-            value={set.weightKg}
-            onChange={(v) => onPatch({ weightKg: v })}
-            step={1}
-            placeholder={hint.weight}
-            disabled={readOnly}
-            ariaLabel={`Poids en kg — ${context}`}
-          />
-        ) : null}
-        {needsTime(tracking) ? (
-          <DurationField
-            value={set.timeSec}
-            onChange={(v) => onPatch({ timeSec: v })}
-            disabled={readOnly}
-            hintSeconds={targets.targetTimeSec}
-            context={context}
-          />
-        ) : null}
-        {needsDistance(tracking) ? (
-          <Stepper
-            value={set.distanceM}
-            onChange={(v) => onPatch({ distanceM: v })}
-            step={50}
-            placeholder={hint.distance}
-            disabled={readOnly}
-            ariaLabel={`Distance en mètres — ${context}`}
-          />
-        ) : null}
+        {tracking === "distance_weight" ? (
+          <>
+            <Stepper
+              value={set.distanceM}
+              onChange={(v) => onPatch({ distanceM: v })}
+              step={10}
+              placeholder={hint.distance}
+              disabled={readOnly}
+              ariaLabel={`Distance en mètres — ${context}`}
+            />
+            <Stepper
+              value={set.weightKg}
+              onChange={(v) => onPatch({ weightKg: v })}
+              step={5}
+              placeholder={hint.weight}
+              disabled={readOnly}
+              ariaLabel={`Poids en kg — ${context}`}
+            />
+          </>
+        ) : (
+          <>
+            {needsWeight(tracking) ? (
+              <Stepper
+                value={set.weightKg}
+                onChange={(v) => onPatch({ weightKg: v })}
+                step={1}
+                placeholder={hint.weight}
+                disabled={readOnly}
+                ariaLabel={`Poids en kg — ${context}`}
+              />
+            ) : null}
+            {needsTime(tracking) ? (
+              <DurationField
+                value={set.timeSec}
+                onChange={(v) => onPatch({ timeSec: v })}
+                disabled={readOnly}
+                hintSeconds={targets.targetTimeSec}
+                context={context}
+              />
+            ) : null}
+            {needsDistance(tracking) ? (
+              <Stepper
+                value={set.distanceM}
+                onChange={(v) => onPatch({ distanceM: v })}
+                step={50}
+                placeholder={hint.distance}
+                disabled={readOnly}
+                ariaLabel={`Distance en mètres — ${context}`}
+              />
+            ) : null}
+          </>
+        )}
       </div>
 
       <button
@@ -1315,6 +1341,7 @@ function toEffortItem(item: PlayerItemData): EffortItem {
     equipment: item.equipment,
     restSec: item.restSec,
     targetTimeSec: item.targetTimeSec,
+    targetDistanceM: item.targetDistanceM,
     targetReps: item.targetReps,
   };
 }
@@ -1329,13 +1356,15 @@ export function needsReps(tracking: string) {
   return tracking === "reps_weight" || tracking === "reps";
 }
 export function needsWeight(tracking: string) {
-  return tracking === "reps_weight";
+  return tracking === "reps_weight" || tracking === "distance_weight";
 }
 export function needsTime(tracking: string) {
   return tracking === "time" || tracking === "time_distance";
 }
 export function needsDistance(tracking: string) {
-  return tracking === "distance" || tracking === "time_distance";
+  return (
+    tracking === "distance" || tracking === "time_distance" || tracking === "distance_weight"
+  );
 }
 
 function parseTargetReps(target: string | null): number | null {

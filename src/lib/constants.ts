@@ -23,6 +23,7 @@ export const EQUIPMENT = {
   elastique: "Élastique",
   barre: "Barre",
   disque: "Disque",
+  traineau: "Traîneau / chariot",
   rameur: "Rameur",
   velo: "Vélo",
   corde_a_sauter: "Corde à sauter",
@@ -58,6 +59,7 @@ export const TRACKING = {
   reps: { label: "Répétitions seules", short: "Reps" },
   time: { label: "Durée", short: "Temps" },
   distance: { label: "Distance", short: "Distance" },
+  distance_weight: { label: "Distance + charge", short: "Dist. × kg" },
   time_distance: { label: "Durée + distance", short: "Temps + dist." },
 } as const;
 
