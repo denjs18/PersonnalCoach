@@ -91,6 +91,29 @@ export const DEFAULT_MET: Record<CategoryKey, number> = {
 };
 
 /**
+ * Niveaux d'effort proposés au coach quand il crée un exercice, avec le MET
+ * correspondant. Personne ne connaît ses MET par cœur : on décrit la sensation,
+ * et c'est la valeur qui sert au calcul des calories.
+ */
+export const EFFORT_LEVELS = [
+  { met: 2.5, label: "Très léger", hint: "Mobilité, étirements, respiration" },
+  { met: 4, label: "Léger", hint: "Échauffement tranquille, on parle sans gêne" },
+  { met: 5.5, label: "Modéré", hint: "Ça chauffe, la conversation devient hachée" },
+  { met: 7, label: "Soutenu", hint: "Essoufflée, quelques mots à la fois" },
+  { met: 8.5, label: "Intense", hint: "Dur à tenir, on ne parle plus" },
+  { met: 10, label: "Maximal", hint: "Sprint, traîneau lourd, on lâche tout" },
+] as const;
+
+/** Le niveau le plus proche d'un MET donné, pour présélectionner le bouton. */
+export function nearestEffortLevel(met: number): number {
+  let best: number = EFFORT_LEVELS[0].met;
+  for (const level of EFFORT_LEVELS) {
+    if (Math.abs(level.met - met) < Math.abs(best - met)) best = level.met;
+  }
+  return best;
+}
+
+/**
  * Coût pendant les temps de repos entre les séries. Ce n'est pas du repos
  * assis : on récupère d'un effort, le cœur et la respiration redescendent
  * lentement. Les mesures de dépense en récupération donnent 2,5 à 3,5 MET.

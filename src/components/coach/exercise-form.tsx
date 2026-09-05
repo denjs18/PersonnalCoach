@@ -5,10 +5,14 @@ import { Loader2 } from "lucide-react";
 import {
   CATEGORIES,
   CATEGORY_KEYS,
+  DEFAULT_MET,
+  EFFORT_LEVELS,
   EQUIPMENT,
   EQUIPMENT_KEYS,
   TRACKING,
   TRACKING_KEYS,
+  nearestEffortLevel,
+  type CategoryKey,
 } from "@/lib/constants";
 import type { ExerciseInput } from "@/lib/actions/exercises";
 import type { Exercise } from "@/lib/db";
@@ -35,6 +39,12 @@ export function ExerciseForm({
   const [steps, setSteps] = useState((initial?.steps ?? []).join("\n"));
   const [cues, setCues] = useState(initial?.cues ?? "");
   const [tracking, setTracking] = useState(initial?.tracking ?? "reps_weight");
+  // On garde le MET exact de l'exercice : ouvrir puis enregistrer sans toucher à
+  // l'intensité ne doit pas l'arrondir au niveau le plus proche.
+  const [met, setMet] = useState(initial?.met ?? metOfCategory(initial?.category ?? "force"));
+  // Tant que le coach n'a pas choisi lui-même, l'intensité suit la catégorie.
+  const [metChosen, setMetChosen] = useState(initial?.met != null);
+  const activeLevel = nearestEffortLevel(met);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -58,6 +68,7 @@ export function ExerciseForm({
         steps: steps.split("\n").map((line) => line.replace(/^\s*\d+[.)]\s*/, "").trim()).filter(Boolean),
         cues,
         tracking,
+        met,
       });
       if (!res.ok) setError(res.error ?? "Une erreur est survenue.");
     } finally {
@@ -91,7 +102,10 @@ export function ExerciseForm({
               <button
                 key={key}
                 type="button"
-                onClick={() => setCategory(key)}
+                onClick={() => {
+                  setCategory(key);
+                  if (!metChosen) setMet(metOfCategory(key));
+                }}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-xs font-semibold transition active:scale-95",
                   active ? "border-transparent text-ink" : "border-line bg-surface-2 text-muted",
@@ -151,6 +165,43 @@ export function ExerciseForm({
             );
           })}
         </div>
+      </div>
+
+      <div>
+        <p className="label">Intensité de l'effort</p>
+        <p className="-mt-0.5 mb-1.5 text-[11px] text-faint">
+          Sert au calcul des calories. Décris l'effort pendant le mouvement, pas la
+          séance entière — les temps de repos sont comptés à part.
+        </p>
+        <div className="grid gap-1.5">
+          {EFFORT_LEVELS.map((level) => {
+            const active = activeLevel === level.met;
+            return (
+              <button
+                key={level.met}
+                type="button"
+                onClick={() => {
+                  setMet(level.met);
+                  setMetChosen(true);
+                }}
+                className={cn(
+                  "flex items-baseline gap-2 rounded-xl border px-3 py-2 text-left transition active:scale-95",
+                  active
+                    ? "border-brand/60 bg-brand/15 text-fg"
+                    : "border-line bg-surface-2 text-muted",
+                )}
+              >
+                <span className="text-xs font-semibold">{level.label}</span>
+                <span className="text-[11px] text-faint">{level.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+        {!metChosen ? (
+          <p className="mt-1 text-[11px] text-faint">
+            Choisi d'après la catégorie. Touche un niveau pour l'ajuster toi-même.
+          </p>
+        ) : null}
       </div>
 
       <div>
@@ -231,4 +282,9 @@ export function ExerciseForm({
       </div>
     </div>
   );
+}
+
+/** MET par défaut d'une catégorie, en retombant sur la force si elle est inconnue. */
+function metOfCategory(category: string): number {
+  return DEFAULT_MET[(category in DEFAULT_MET ? category : "force") as CategoryKey];
 }

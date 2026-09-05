@@ -16,6 +16,8 @@ export type ExerciseInput = {
   steps: string[];
   cues?: string | null;
   tracking: string;
+  /** Coût énergétique du mouvement, en MET. À défaut, celui de la catégorie. */
+  met?: number | null;
 };
 
 function clean(input: ExerciseInput): ExerciseInput {
@@ -28,7 +30,16 @@ function clean(input: ExerciseInput): ExerciseInput {
     steps: (input.steps ?? []).map((s) => s.trim()).filter(Boolean),
     cues: input.cues?.trim() || null,
     tracking: input.tracking || "reps_weight",
+    met: metOf(input),
   };
+}
+
+/** Le MET retenu : celui choisi par le coach, sinon celui de la catégorie. */
+function metOf(input: ExerciseInput): number {
+  const chosen = Number(input.met);
+  if (Number.isFinite(chosen) && chosen > 0) return chosen;
+  const category = input.category || "force";
+  return DEFAULT_MET[(category in DEFAULT_MET ? category : "force") as CategoryKey];
 }
 
 export async function createExerciseAction(
@@ -41,11 +52,7 @@ export async function createExerciseAction(
   try {
     const [row] = await db
       .insert(exercises)
-      .values({
-        ...data,
-        met: DEFAULT_MET[(data.category as CategoryKey) in DEFAULT_MET ? (data.category as CategoryKey) : "force"],
-        isCustom: true,
-      })
+      .values({ ...data, isCustom: true })
       .returning();
     revalidatePath("/coach/exercices");
     return { ok: true, exercise: row };

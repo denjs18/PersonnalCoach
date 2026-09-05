@@ -40,6 +40,7 @@ import { CategoryBadge } from "@/components/ui";
 import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { RestTimer } from "./rest-timer";
 import { cn, formatDistance, formatDuration, formatWeight } from "@/lib/utils";
+import { needsDistance, needsReps, needsTime, needsWeight } from "@/lib/tracking";
 
 /* ------------------------------- Types ----------------------------------- */
 
@@ -1350,21 +1351,6 @@ function sectionOrder(section: string): number {
   const order = ["echauffement", "principal", "finisher", "retour_au_calme"];
   const index = order.indexOf(section);
   return index === -1 ? 99 : index;
-}
-
-export function needsReps(tracking: string) {
-  return tracking === "reps_weight" || tracking === "reps";
-}
-export function needsWeight(tracking: string) {
-  return tracking === "reps_weight" || tracking === "distance_weight";
-}
-export function needsTime(tracking: string) {
-  return tracking === "time" || tracking === "time_distance";
-}
-export function needsDistance(tracking: string) {
-  return (
-    tracking === "distance" || tracking === "time_distance" || tracking === "distance_weight"
-  );
 }
 
 function parseTargetReps(target: string | null): number | null {

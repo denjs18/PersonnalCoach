@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowUpDown,
   Check,
@@ -37,7 +38,9 @@ import {
   TRACKING,
   TRACKING_KEYS,
   type SectionKey,
+  type TrackingKey,
 } from "@/lib/constants";
+import { needsDistance, needsReps, needsTime, needsWeight } from "@/lib/tracking";
 import type { Exercise } from "@/lib/db";
 import { CategoryBadge, StatusBadge } from "@/components/ui";
 import { ExerciseHowTo } from "@/components/exercise-how-to";
@@ -769,6 +772,8 @@ function ItemEditor({
             />
           </div>
 
+          <UnrecordableTargets item={item} tracking={tracking} />
+
           <div>
             <label className="label" htmlFor={`note-${item.key}`}>
               Consigne pour elle
@@ -1050,4 +1055,34 @@ function estimateMinutes(items: BuilderItem[]): number {
     seconds += item.sets * (perSet + rest) + 45;
   }
   return Math.max(5, Math.round(seconds / 60));
+}
+
+/**
+ * Une cible que le mode de suivi ne fait pas saisir reste invisible pendant la
+ * séance : le coach la fixe, l'athlète n'a pas de champ pour la noter, et elle
+ * ne compte pas dans les calories. Autant le dire tout de suite.
+ */
+function UnrecordableTargets({ item, tracking }: { item: BuilderItem; tracking: string }) {
+  const perdus: string[] = [];
+  if (item.targetReps && !needsReps(tracking)) perdus.push("les répétitions");
+  if (item.targetWeight && !needsWeight(tracking)) perdus.push("le poids");
+  if (item.targetTimeSec && !needsTime(tracking)) perdus.push("la durée");
+  if (item.targetDistanceM && !needsDistance(tracking)) perdus.push("la distance");
+  if (perdus.length === 0) return null;
+
+  const pluriel = perdus.length > 1;
+  return (
+    <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-[11.5px] leading-relaxed text-warn">
+      <AlertTriangle className="mr-1 inline size-3.5 -translate-y-px" />
+      Avec « {TRACKING[tracking as TrackingKey]?.label ?? tracking} », elle ne pourra pas
+      noter {joinFr(perdus)}. {pluriel ? "Ces cibles resteront" : "Cette cible restera"} sans
+      effet, y compris sur les calories. Change « Ce qu'elle note pour cet exercice »
+      juste au-dessus.
+    </p>
+  );
+}
+
+function joinFr(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} et ${parts[parts.length - 1]}`;
 }
