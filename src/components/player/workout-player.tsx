@@ -81,6 +81,8 @@ export type PlayerItemData = {
     lastDate: string | null;
     lastWeight: number | null;
     lastReps: number | null;
+    lastTimeSec: number | null;
+    lastDistanceM: number | null;
     bestWeight: number | null;
     bestReps: number | null;
     bestTimeSec: number | null;
@@ -1374,11 +1376,12 @@ function lastPerfLabel(item: PlayerItemData): string | null {
   const last = item.last;
   if (!last?.lastDate) return null;
 
+  // L'ordre suit la façon dont on lit la perf : « 12 reps × 14 kg », « 15 m × 30 kg ».
   const bits: string[] = [];
   if (last.lastReps) bits.push(`${last.lastReps} reps`);
+  if (last.lastTimeSec) bits.push(formatDuration(last.lastTimeSec));
+  if (last.lastDistanceM) bits.push(formatDistance(last.lastDistanceM));
   if (last.lastWeight) bits.push(formatWeight(last.lastWeight));
-  if (bits.length === 0 && last.bestTimeSec) bits.push(formatDuration(last.bestTimeSec));
-  if (bits.length === 0 && last.bestDistanceM) bits.push(formatDistance(last.bestDistanceM));
 
   const perf = bits.join(" × ") || "fait";
   return `${perf} · ${formatFrShort(last.lastDate)}`;
@@ -1390,9 +1393,14 @@ function recordLabel_(item: PlayerItemData): string | null {
   if (!last) return null;
 
   if (last.bestWeight) {
-    return last.bestReps
-      ? `${formatWeight(last.bestWeight)} · ${last.bestReps} reps`
-      : formatWeight(last.bestWeight);
+    // Une charge seule ne dit rien : on la qualifie par la distance ou les reps.
+    const avec = last.bestDistanceM
+      ? formatDistance(last.bestDistanceM)
+      : last.bestReps
+        ? `${last.bestReps} reps`
+        : null;
+    const charge = formatWeight(last.bestWeight);
+    return avec ? `${charge} · ${avec}` : charge;
   }
   if (last.bestTimeSec) return formatDuration(last.bestTimeSec);
   if (last.bestDistanceM) return formatDistance(last.bestDistanceM);

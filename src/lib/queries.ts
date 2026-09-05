@@ -435,6 +435,8 @@ export type LastPerf = {
   lastDate: string | null;
   lastWeight: number | null;
   lastReps: number | null;
+  lastTimeSec: number | null;
+  lastDistanceM: number | null;
   bestWeight: number | null;
   bestReps: number | null;
   bestTimeSec: number | null;
@@ -470,16 +472,26 @@ export async function getLastPerformances(
       day: sql<string>`coalesce(${setLogs.performedOn}, ${setLogs.loggedAt}::date)::text`,
       weight: sql<number | null>`max(${setLogs.weightKg})::float`,
       reps: sql<number | null>`max(${setLogs.reps})::int`,
+      timeSec: sql<number | null>`max(${setLogs.timeSec})::int`,
+      distanceM: sql<number | null>`max(${setLogs.distanceM})::int`,
     })
     .from(setLogs)
     .where(and(...conditions))
     .groupBy(setLogs.exerciseId, sql`coalesce(${setLogs.performedOn}, ${setLogs.loggedAt}::date)`)
     .orderBy(desc(sql`coalesce(${setLogs.performedOn}, ${setLogs.loggedAt}::date)`));
 
-  const lastByExercise = new Map<string, { weight: number | null; reps: number | null }>();
+  const lastByExercise = new Map<
+    string,
+    { weight: number | null; reps: number | null; timeSec: number | null; distanceM: number | null }
+  >();
   for (const row of recent) {
     if (!lastByExercise.has(row.exerciseId)) {
-      lastByExercise.set(row.exerciseId, { weight: row.weight, reps: row.reps });
+      lastByExercise.set(row.exerciseId, {
+        weight: row.weight,
+        reps: row.reps,
+        timeSec: row.timeSec,
+        distanceM: row.distanceM,
+      });
     }
   }
 
@@ -491,6 +503,8 @@ export async function getLastPerformances(
         lastDate: r.lastDate,
         lastWeight: lastByExercise.get(r.exerciseId)?.weight ?? null,
         lastReps: lastByExercise.get(r.exerciseId)?.reps ?? null,
+        lastTimeSec: lastByExercise.get(r.exerciseId)?.timeSec ?? null,
+        lastDistanceM: lastByExercise.get(r.exerciseId)?.distanceM ?? null,
         bestWeight: r.bestWeight,
         bestReps: r.bestReps,
         bestTimeSec: r.bestTimeSec,
