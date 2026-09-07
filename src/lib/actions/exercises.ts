@@ -18,6 +18,8 @@ export type ExerciseInput = {
   tracking: string;
   /** Coût énergétique du mouvement, en MET. À défaut, celui de la catégorie. */
   met?: number | null;
+  /** Exercice en pente : la dépense se calcule à partir de l'inclinaison. */
+  usesIncline?: boolean;
 };
 
 function clean(input: ExerciseInput): ExerciseInput {
@@ -31,6 +33,7 @@ function clean(input: ExerciseInput): ExerciseInput {
     cues: input.cues?.trim() || null,
     tracking: input.tracking || "reps_weight",
     met: metOf(input),
+    usesIncline: input.usesIncline ?? false,
   };
 }
 

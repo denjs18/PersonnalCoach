@@ -32,6 +32,7 @@ import {
   type PlanItem,
 } from "@/lib/actions/workouts";
 import {
+  DEFAULT_INCLINE_PCT,
   INTENSITY,
   SECTIONS,
   SECTION_KEYS,
@@ -56,6 +57,7 @@ export type BuilderItem = PlanItem & {
   exerciseName: string;
   exerciseCategory: string;
   exerciseTracking: string;
+  exerciseUsesIncline: boolean;
   exerciseDescription: string | null;
   exerciseSteps: string[];
   exerciseCues: string | null;
@@ -210,6 +212,7 @@ export function WorkoutBuilder({
         exerciseName: exercise.name,
         exerciseCategory: exercise.category,
         exerciseTracking: exercise.tracking,
+        exerciseUsesIncline: exercise.usesIncline,
         exerciseDescription: exercise.description,
         exerciseSteps: exercise.steps,
         exerciseCues: exercise.cues,
@@ -219,6 +222,7 @@ export function WorkoutBuilder({
         targetWeight: null,
         targetTimeSec: defaultTime(exercise.tracking, section),
         targetDistanceM: null,
+        targetInclinePct: null,
         restSec: section === "principal" ? 60 : null,
         note: null,
         supersetGroup: null,
@@ -772,6 +776,20 @@ function ItemEditor({
             />
           </div>
 
+          {item.exerciseUsesIncline ? (
+            <NumField
+              label="Pente cible (%)"
+              value={item.targetInclinePct}
+              step={1}
+              onChange={(v) => onPatch({ targetInclinePct: v })}
+              hint={
+                item.targetInclinePct
+                  ? undefined
+                  : `sans réglage, ${DEFAULT_INCLINE_PCT} % sont supposés`
+              }
+            />
+          ) : null}
+
           <UnrecordableTargets item={item} tracking={tracking} />
 
           <div>
@@ -1014,6 +1032,7 @@ function toPlanItem(item: BuilderItem): PlanItem {
     targetWeight: item.targetWeight,
     targetTimeSec: item.targetTimeSec,
     targetDistanceM: item.targetDistanceM,
+    targetInclinePct: item.targetInclinePct,
     restSec: item.restSec,
     note: item.note,
     supersetGroup: item.supersetGroup,
@@ -1068,6 +1087,7 @@ function UnrecordableTargets({ item, tracking }: { item: BuilderItem; tracking: 
   if (item.targetWeight && !needsWeight(tracking)) perdus.push("le poids");
   if (item.targetTimeSec && !needsTime(tracking)) perdus.push("la durée");
   if (item.targetDistanceM && !needsDistance(tracking)) perdus.push("la distance");
+  if (item.targetInclinePct && !item.exerciseUsesIncline) perdus.push("la pente");
   if (perdus.length === 0) return null;
 
   const pluriel = perdus.length > 1;

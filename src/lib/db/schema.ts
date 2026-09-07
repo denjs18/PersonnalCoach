@@ -34,6 +34,8 @@ export const exercises = pgTable(
     met: real("met"),
     /** reps_weight | reps | time | distance | time_distance */
     tracking: text("tracking").notNull().default("reps_weight"),
+    /** Exercice en pente (tapis incliné, côte) : la pente entre dans le calcul. */
+    usesIncline: boolean("uses_incline").notNull().default(false),
     /** true = exercice créé à la main par le coach */
     isCustom: boolean("is_custom").notNull().default(false),
     isArchived: boolean("is_archived").notNull().default(false),
@@ -107,6 +109,7 @@ export const workoutItems = pgTable(
     targetWeight: real("target_weight"),
     targetTimeSec: integer("target_time_sec"),
     targetDistanceM: integer("target_distance_m"),
+    targetInclinePct: real("target_incline_pct"),
     restSec: integer("rest_sec"),
     note: text("note"),
     /** "A", "B"… pour enchaîner deux exos en superset */
@@ -139,6 +142,7 @@ export const setLogs = pgTable(
     weightKg: real("weight_kg"),
     timeSec: integer("time_sec"),
     distanceM: integer("distance_m"),
+    inclinePct: real("incline_pct"),
     /** 1→10, difficulté ressentie */
     rpe: integer("rpe"),
     done: boolean("done").notNull().default(false),

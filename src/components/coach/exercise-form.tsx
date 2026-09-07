@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import {
   CATEGORIES,
   CATEGORY_KEYS,
@@ -44,6 +44,7 @@ export function ExerciseForm({
   const [met, setMet] = useState(initial?.met ?? metOfCategory(initial?.category ?? "force"));
   // Tant que le coach n'a pas choisi lui-même, l'intensité suit la catégorie.
   const [metChosen, setMetChosen] = useState(initial?.met != null);
+  const [usesIncline, setUsesIncline] = useState(initial?.usesIncline ?? false);
   const activeLevel = nearestEffortLevel(met);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -69,6 +70,7 @@ export function ExerciseForm({
         cues,
         tracking,
         met,
+        usesIncline,
       });
       if (!res.ok) setError(res.error ?? "Une erreur est survenue.");
     } finally {
@@ -168,6 +170,41 @@ export function ExerciseForm({
       </div>
 
       <div>
+        <button
+          type="button"
+          onClick={() => setUsesIncline((v) => !v)}
+          className={cn(
+            "flex w-full items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition active:scale-[0.99]",
+            usesIncline
+              ? "border-brand/60 bg-brand/15 text-fg"
+              : "border-line bg-surface-2 text-muted",
+          )}
+        >
+          <span
+            className={cn(
+              "mt-0.5 grid size-4 shrink-0 place-items-center rounded border",
+              usesIncline ? "border-brand bg-brand text-ink" : "border-line",
+            )}
+          >
+            {usesIncline ? <Check className="size-3" strokeWidth={3} /> : null}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold">Cet exercice se fait en pente</span>
+            <span className="block text-[11px] text-faint">
+              Tapis incliné, côte, escaliers. Elle note l'inclinaison, et la dépense se
+              calcule dessus — monter lentement coûte bien plus que marcher à plat.
+            </span>
+          </span>
+        </button>
+      </div>
+
+      {usesIncline ? (
+        <p className="rounded-xl border border-line bg-surface-2 px-3 py-2 text-[11px] leading-relaxed text-faint">
+          Pas d'intensité à choisir ici : pour un exercice en pente, la dépense se
+          déduit de l'allure et de l'inclinaison notées pendant la séance.
+        </p>
+      ) : (
+      <div>
         <p className="label">Intensité de l'effort</p>
         <p className="-mt-0.5 mb-1.5 text-[11px] text-faint">
           Sert au calcul des calories. Décris l'effort pendant le mouvement, pas la
@@ -203,6 +240,7 @@ export function ExerciseForm({
           </p>
         ) : null}
       </div>
+      )}
 
       <div>
         <label className="label" htmlFor="ex-muscles">

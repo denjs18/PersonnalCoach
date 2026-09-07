@@ -22,6 +22,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     cues         text,
     met          real,
     tracking     text NOT NULL DEFAULT 'reps_weight',
+    uses_incline boolean NOT NULL DEFAULT false,
     is_custom    boolean NOT NULL DEFAULT false,
     is_archived  boolean NOT NULL DEFAULT false,
     created_at   timestamptz NOT NULL DEFAULT now()
@@ -30,6 +31,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   // Migration : bases créées avant l'ajout du pas-à-pas.
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS steps text[] NOT NULL DEFAULT '{}'`,
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS met real`,
+  `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS uses_incline boolean NOT NULL DEFAULT false`,
 
   `CREATE UNIQUE INDEX IF NOT EXISTS exercises_name_unique ON exercises (name)`,
   `CREATE INDEX IF NOT EXISTS exercises_category_idx ON exercises (category)`,
@@ -71,8 +73,11 @@ export const SCHEMA_STATEMENTS: string[] = [
     rest_sec          integer,
     note              text,
     superset_group    text,
-    tracking          text
+    tracking          text,
+    target_incline_pct real
   )`,
+
+  `ALTER TABLE workout_items ADD COLUMN IF NOT EXISTS target_incline_pct real`,
 
   `CREATE INDEX IF NOT EXISTS workout_items_workout_idx ON workout_items (workout_id)`,
 
@@ -86,11 +91,14 @@ export const SCHEMA_STATEMENTS: string[] = [
     weight_kg       real,
     time_sec        integer,
     distance_m      integer,
+    incline_pct     real,
     rpe             integer,
     done            boolean NOT NULL DEFAULT false,
     performed_on    date,
     logged_at       timestamptz NOT NULL DEFAULT now()
   )`,
+
+  `ALTER TABLE set_logs ADD COLUMN IF NOT EXISTS incline_pct real`,
 
   `CREATE UNIQUE INDEX IF NOT EXISTS set_logs_item_set_unique ON set_logs (workout_item_id, set_number)`,
   `CREATE INDEX IF NOT EXISTS set_logs_exercise_idx ON set_logs (exercise_id)`,

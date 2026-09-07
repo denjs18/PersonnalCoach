@@ -15,6 +15,7 @@ import {
   Flame,
   History,
   Timer,
+  TrendingUp,
   Trophy,
 } from "lucide-react";
 import {
@@ -25,7 +26,7 @@ import {
   type FinishOutcome,
   type SetEntry,
 } from "@/lib/actions/logs";
-import { MOODS, SECTIONS, type SectionKey } from "@/lib/constants";
+import { DEFAULT_INCLINE_PCT, MOODS, SECTIONS, type SectionKey } from "@/lib/constants";
 import {
   estimateCalories,
   estimateWorkSeconds,
@@ -52,6 +53,7 @@ export type SetState = {
   weightKg: number | null;
   timeSec: number | null;
   distanceM: number | null;
+  inclinePct: number | null;
   rpe: number | null;
   done: boolean;
 };
@@ -68,11 +70,13 @@ export type PlayerItemData = {
   tracking: string;
   section: string;
   met: number | null;
+  usesIncline: boolean;
   sets: number;
   targetReps: string | null;
   targetWeight: number | null;
   targetTimeSec: number | null;
   targetDistanceM: number | null;
+  targetInclinePct: number | null;
   restSec: number | null;
   note: string | null;
   supersetGroup: string | null;
@@ -288,6 +292,7 @@ export function WorkoutPlayer({
             weightKg: null,
             timeSec: null,
             distanceM: null,
+            inclinePct: null,
             rpe: null,
             done: false,
           }
@@ -352,6 +357,7 @@ export function WorkoutPlayer({
           weightKg: s.weightKg,
           timeSec: s.timeSec,
           distanceM: s.distanceM,
+          inclinePct: s.inclinePct,
           rpe: s.rpe,
           done: s.done,
         });
@@ -452,6 +458,7 @@ export function WorkoutPlayer({
             weightKg: null,
             timeSec: null,
             distanceM: null,
+            inclinePct: list[list.length - 1]?.inclinePct ?? null,
             rpe: null,
             done: false,
           },
@@ -816,6 +823,14 @@ function ExerciseCard({
 
       {/* Séries */}
       <div className="space-y-1.5 px-3 pb-3">
+        {item.usesIncline ? (
+          <InclineField
+            value={sets[0]?.inclinePct ?? null}
+            target={item.targetInclinePct}
+            disabled={readOnly}
+            onChange={(v) => sets.forEach((s) => onPatch(s.setNumber, { inclinePct: v }))}
+          />
+        ) : null}
         <SetHeader tracking={item.tracking} />
         {sets.map((s) => (
           <SetRow
@@ -892,6 +907,47 @@ function ExerciseCard({
         </div>
       ) : null}
     </article>
+  );
+}
+
+/**
+ * Pente du tapis ou de la côte. Réglée une fois pour l'exercice — on ne change
+ * pas l'inclinaison entre deux séries — et recopiée sur chaque série, parce que
+ * c'est la série qui porte la dépense.
+ */
+function InclineField({
+  value,
+  target,
+  disabled,
+  onChange,
+}: {
+  value: number | null;
+  target: number | null;
+  disabled: boolean;
+  onChange: (v: number | null) => void;
+}) {
+  const retenue = value ?? target ?? DEFAULT_INCLINE_PCT;
+  const suppose = value === null;
+
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-line/70 bg-surface-2/40 px-2.5 py-1.5">
+      <TrendingUp className="size-3.5 shrink-0 text-brand-3" />
+      <span className="shrink-0 text-[11.5px] font-semibold text-muted">Pente</span>
+      <div className="min-w-0 flex-1">
+        <Stepper
+          value={value}
+          onChange={onChange}
+          step={1}
+          placeholder={String(target ?? DEFAULT_INCLINE_PCT)}
+          disabled={disabled}
+          ariaLabel="Pente en pourcentage"
+        />
+      </div>
+      <span className="shrink-0 text-[11.5px] font-bold text-muted">%</span>
+      {suppose ? (
+        <span className="shrink-0 text-[10.5px] text-faint">supposée {retenue} %</span>
+      ) : null}
+    </div>
   );
 }
 
@@ -1342,9 +1398,11 @@ function toEffortItem(item: PlayerItemData): EffortItem {
     category: item.category,
     met: item.met,
     equipment: item.equipment,
+    usesIncline: item.usesIncline,
     restSec: item.restSec,
     targetTimeSec: item.targetTimeSec,
     targetDistanceM: item.targetDistanceM,
+    targetInclinePct: item.targetInclinePct,
     targetReps: item.targetReps,
   };
 }

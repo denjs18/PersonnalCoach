@@ -91,6 +91,23 @@ export const DEFAULT_MET: Record<CategoryKey, number> = {
 };
 
 /**
+ * Pente retenue quand personne ne l'a précisée, en pourcentage.
+ * Un exercice déclaré « en pente » n'a de sens qu'incliné : à défaut d'un
+ * chiffre, on suppose une pente franche plutôt qu'un tapis à plat. 12 %, c'est
+ * l'inclinaison des marches en côte classiques en salle.
+ */
+export const DEFAULT_INCLINE_PCT = 12;
+
+/**
+ * Allure de marche supposée quand la distance n'a pas été notée (m/min).
+ * 75 m/min ≈ 4,5 km/h, l'allure d'une marche soutenue sur tapis.
+ */
+export const DEFAULT_WALK_SPEED_M_MIN = 75;
+
+/** Au-delà de cette allure on ne marche plus, on court (134 m/min ≈ 8 km/h). */
+export const RUNNING_THRESHOLD_M_MIN = 134;
+
+/**
  * Niveaux d'effort proposés au coach quand il crée un exercice, avec le MET
  * correspondant. Personne ne connaît ses MET par cœur : on décrit la sensation,
  * et c'est la valeur qui sert au calcul des calories.

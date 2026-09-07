@@ -112,14 +112,17 @@ async function effortEntriesByWorkout(
       category: exercises.category,
       met: exercises.met,
       equipment: exercises.equipment,
+      usesIncline: exercises.usesIncline,
       restSec: workoutItems.restSec,
       targetTimeSec: workoutItems.targetTimeSec,
       targetDistanceM: workoutItems.targetDistanceM,
+      targetInclinePct: workoutItems.targetInclinePct,
       targetReps: workoutItems.targetReps,
       reps: setLogs.reps,
       weightKg: setLogs.weightKg,
       timeSec: setLogs.timeSec,
       distanceM: setLogs.distanceM,
+      inclinePct: setLogs.inclinePct,
     })
     .from(setLogs)
     .innerJoin(workoutItems, eq(workoutItems.id, setLogs.workoutItemId))
@@ -134,9 +137,11 @@ async function effortEntriesByWorkout(
         category: row.category,
         met: row.met,
         equipment: row.equipment,
+        usesIncline: row.usesIncline,
         restSec: row.restSec,
         targetTimeSec: row.targetTimeSec,
         targetDistanceM: row.targetDistanceM,
+        targetInclinePct: row.targetInclinePct,
         targetReps: row.targetReps,
       },
       set: {
@@ -144,6 +149,7 @@ async function effortEntriesByWorkout(
         weightKg: row.weightKg,
         timeSec: row.timeSec,
         distanceM: row.distanceM,
+        inclinePct: row.inclinePct,
         done: true,
       },
     };

@@ -13,6 +13,8 @@ export type SeedExercise = {
   cues: string;
   /** Coût énergétique en MET. Absent = valeur par défaut de la catégorie. */
   met?: number;
+  /** Exercice en pente : la dépense se calcule sur l'allure et l'inclinaison. */
+  usesIncline?: boolean;
   tracking: TrackingKey;
 };
 
@@ -1625,6 +1627,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Buste droit, grandes foulées, respiration nasale si possible.",
     met: 6,
+    usesIncline: true,
     tracking: "time_distance",
   },
   {

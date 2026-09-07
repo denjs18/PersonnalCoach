@@ -1,9 +1,12 @@
 import {
+  DEFAULT_INCLINE_PCT,
   DEFAULT_MET,
+  DEFAULT_WALK_SPEED_M_MIN,
   MAX_GAP_SECONDS,
   PACE_MET,
   REST_MET,
   RESTING_OVER_BASAL,
+  RUNNING_THRESHOLD_M_MIN,
   SECONDS_PER_REP,
   TRANSITION_SECONDS,
   type CategoryKey,
@@ -75,6 +78,9 @@ export type EffortItem = {
   targetTimeSec: number | null;
   targetDistanceM?: number | null;
   targetReps: string | null;
+  /** Exercice en pente : la dépense se calcule à partir de l'inclinaison. */
+  usesIncline?: boolean;
+  targetInclinePct?: number | null;
 };
 
 export type EffortSet = {
@@ -82,6 +88,7 @@ export type EffortSet = {
   weightKg: number | null;
   timeSec: number | null;
   distanceM: number | null;
+  inclinePct?: number | null;
   done: boolean;
 };
 
@@ -187,8 +194,44 @@ function paceTableFor(item: EffortItem): Array<[number, number]> | null {
   return null;
 }
 
+/** Allure notée d'une série, en mètres par minute. */
+function paceOf(set: EffortSet): number | null {
+  if (!set.distanceM || set.distanceM <= 0 || !set.timeSec || set.timeSec <= 0) return null;
+  return set.distanceM / (set.timeSec / 60);
+}
+
+/**
+ * Coût d'un déplacement en pente, en MET.
+ *
+ * Équations de l'ACSM, qui donnent la consommation d'oxygène à partir de
+ * l'allure et de la pente : monter coûte cher même lentement, et c'est
+ * précisément ce que les tables d'allure à plat ratent. Marcher à 2,7 km/h,
+ * c'est 2,3 MET sur le plat mais 5,1 MET à 12 %.
+ *
+ *   marche : VO₂ = 0,1 × allure + 1,8 × allure × pente + 3,5
+ *   course : VO₂ = 0,2 × allure + 0,9 × allure × pente + 3,5
+ *
+ * (allure en m/min, pente en fraction, VO₂ en ml/kg/min ; 1 MET = 3,5.)
+ */
+export function inclineMet(metersPerMinute: number, inclinePct: number): number {
+  const pace = Math.max(0, metersPerMinute);
+  const grade = Math.max(0, inclinePct) / 100;
+  const running = pace >= RUNNING_THRESHOLD_M_MIN;
+
+  const horizontal = (running ? 0.2 : 0.1) * pace;
+  const vertical = (running ? 0.9 : 1.8) * pace * grade;
+  return (horizontal + vertical + 3.5) / 3.5;
+}
+
 function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): number {
   const base = item.met ?? DEFAULT_MET[categoryOf(item)];
+
+  // Exercice en pente : c'est l'inclinaison qui commande, pas la table d'allure
+  // à plat, qui prendrait une montée lente pour une promenade.
+  if (item.usesIncline) {
+    const incline = set.inclinePct ?? item.targetInclinePct ?? DEFAULT_INCLINE_PCT;
+    return inclineMet(paceOf(set) ?? DEFAULT_WALK_SPEED_M_MIN, incline);
+  }
 
   // Distance et durée notées : l'allure dit bien mieux que l'exercice ce que
   // l'effort a coûté (10 min de rameur tranquille ≠ 10 min à fond).
