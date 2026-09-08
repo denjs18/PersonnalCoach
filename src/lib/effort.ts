@@ -2,7 +2,14 @@ import {
   DEFAULT_INCLINE_PCT,
   DEFAULT_MET,
   DEFAULT_WALK_SPEED_M_MIN,
+  ECCENTRIC_FACTOR,
+  GRAVITY,
+  JOULES_PER_KCAL,
   MAX_GAP_SECONDS,
+  MUSCLE_EFFICIENCY,
+  REP_RANGE_M,
+  SLED_FRICTION,
+  SLED_OWN_MASS_KG,
   PACE_MET,
   REST_MET,
   RESTING_OVER_BASAL,
@@ -244,13 +251,46 @@ function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): numbe
     }
   }
 
-  // Porter une charge coûte plus cher : on module jusqu'à +35 % selon le poids
-  // soulevé, rapporté au poids de corps.
-  if (set.weightKg && set.weightKg > 0 && profile.weightKg) {
-    const ratio = Math.min(1, set.weightKg / profile.weightKg);
-    return base * (1 + 0.35 * ratio);
-  }
   return base;
+}
+
+/**
+ * Ce que la charge ajoute, en kcal — par-dessus le coût du mouvement lui-même.
+ *
+ * Le poids n'est pas une intensité, c'est du travail : on le calcule en joules
+ * puis on le convertit. Trois façons de déplacer une charge, trois physiques.
+ */
+function loadCalories(item: EffortItem, set: EffortSet, profile: AthleteProfile): number {
+  const load = set.weightKg;
+  if (!load || load <= 0) return 0;
+  const perMinute = restingKcalPerMinute(profile);
+  if (perMinute === null) return 0;
+
+  // Tractée : c'est le frottement du chariot chargé sur la distance parcourue.
+  if ((item.equipment ?? []).includes("traineau")) {
+    const distance = set.distanceM ?? item.targetDistanceM ?? 0;
+    if (distance > 0) {
+      const joules = SLED_FRICTION * (SLED_OWN_MASS_KG + load) * GRAVITY * distance;
+      return joules / MUSCLE_EFFICIENCY / JOULES_PER_KCAL;
+    }
+  }
+
+  // Soulevée : le travail d'une répétition, montée et descente, fois le nombre.
+  const reps = set.reps ?? parseFirstNumber(item.targetReps);
+  if (reps && reps > 0) {
+    const range = REP_RANGE_M[categoryOf(item)];
+    const joules = reps * load * GRAVITY * range * ECCENTRIC_FACTOR;
+    return joules / MUSCLE_EFFICIENCY / JOULES_PER_KCAL;
+  }
+
+  // Portée ou tenue : ni répétition ni traction, mais un corps alourdi à
+  // déplacer. Le coût du déplacement suit la masse totale.
+  if (profile.weightKg) {
+    const base = item.met ?? DEFAULT_MET[categoryOf(item)];
+    const minutes = setEffortSeconds(item, set) / 60;
+    return base * perMinute * minutes * (load / profile.weightKg);
+  }
+  return 0;
 }
 
 /**
@@ -269,7 +309,11 @@ export function setCalories(
   const effortMin = setEffortSeconds(item, set) / 60;
   const restMin = includeRest ? restSeconds(item) / 60 : 0;
 
-  return metOf(item, set, profile) * perMinute * effortMin + REST_MET * perMinute * restMin;
+  return (
+    metOf(item, set, profile) * perMinute * effortMin +
+    loadCalories(item, set, profile) +
+    REST_MET * perMinute * restMin
+  );
 }
 
 /** Somme des durées d'effort pur, hors repos, en secondes. */
@@ -303,6 +347,7 @@ export function estimateCalories(
   let total = 0;
   for (const { item, set } of done) {
     total += (metOf(item, set, profile) * perMinute * setEffortSeconds(item, set)) / 60;
+    total += loadCalories(item, set, profile);
   }
 
   // Tout le reste de la séance : récupération entre les séries et transitions.
@@ -318,5 +363,18 @@ export function estimateCalories(
 }
 
 export function formatCalories(value: number): string {
-  return `${Math.round(value).toLocaleString("fr-FR")} kcal`;
+  return `${formatKcal(value)} kcal`;
+}
+
+/**
+ * Un nombre de calories, lisible.
+ *
+ * Sous 10 kcal on garde une décimale : une série vaut quelques calories, et
+ * l'arrondi à l'entier effacerait justement l'effet d'une charge plus lourde.
+ */
+export function formatKcal(value: number): string {
+  if (value > 0 && value < 10) {
+    return value.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+  return Math.round(value).toLocaleString("fr-FR");
 }

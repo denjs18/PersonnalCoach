@@ -30,6 +30,7 @@ import { DEFAULT_INCLINE_PCT, MOODS, SECTIONS, type SectionKey } from "@/lib/con
 import {
   estimateCalories,
   estimateWorkSeconds,
+  formatKcal,
   isProfileComplete,
   measuredWorkSeconds,
   setCalories,
@@ -814,7 +815,7 @@ function ExerciseCard({
             ) : null}
             {calories ? (
               <span className="inline-flex items-center gap-1 rounded-lg bg-warn/12 px-2 py-1 text-[11.5px] font-bold text-warn">
-                <Flame className="size-3 shrink-0" />~{Math.round(calories)} kcal
+                <Flame className="size-3 shrink-0" />~{formatKcal(calories)} kcal
               </span>
             ) : null}
           </div>

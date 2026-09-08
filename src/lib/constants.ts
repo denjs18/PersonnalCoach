@@ -90,6 +90,45 @@ export const DEFAULT_MET: Record<CategoryKey, number> = {
   mobilite: 2.3,
 };
 
+/* ---------------------------- Travail mécanique --------------------------- */
+
+/**
+ * Ce que coûte réellement une charge.
+ *
+ * Plutôt qu'un coefficient choisi à la main, on calcule le travail physique :
+ * masse × gravité × déplacement. Ça donne le bon comportement de lui-même —
+ * 5 kg d'haltères sur une fente ne pèsent presque rien face aux 84 kg de corps
+ * déjà déplacés, alors que 40 kg au soulevé de terre, c'est tout l'exercice.
+ */
+export const GRAVITY = 9.81;
+export const JOULES_PER_KCAL = 4184;
+
+/** Rendement du muscle : environ un cinquième du travail produit est mécanique. */
+export const MUSCLE_EFFICIENCY = 0.22;
+
+/**
+ * La descente coûte aussi, sans produire de travail positif : on compte la
+ * phase excentrique pour environ un tiers de la montée.
+ */
+export const ECCENTRIC_FACTOR = 1.3;
+
+/** Hauteur typique parcourue par la charge sur une répétition, en mètres. */
+export const REP_RANGE_M: Record<CategoryKey, number> = {
+  echauffement: 0.4,
+  force: 0.45,
+  mouvement: 0.4,
+  duo: 0.4,
+  core: 0.3,
+  cardio: 0.4,
+  plyo: 0.4,
+  mobilite: 0.3,
+};
+
+/** Traîneau : c'est le frottement au sol qui coûte, pas une montée. */
+export const SLED_FRICTION = 0.4;
+/** Masse du chariot à vide, à ajouter à la charge posée dessus (kg). */
+export const SLED_OWN_MASS_KG = 30;
+
 /**
  * Pente retenue quand personne ne l'a précisée, en pourcentage.
  * Un exercice déclaré « en pente » n'a de sens qu'incliné : à défaut d'un
