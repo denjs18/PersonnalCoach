@@ -67,6 +67,7 @@ export async function initDatabaseAction(): Promise<
           cues: ex.cues,
           met: ex.met ?? DEFAULT_MET[ex.category],
           usesIncline: ex.usesIncline ?? false,
+          repSeconds: ex.repSeconds ?? null,
           tracking: ex.tracking,
           isCustom: false,
         })),
@@ -82,6 +83,7 @@ export async function initDatabaseAction(): Promise<
           cues: sql`excluded.cues`,
           met: sql`excluded.met`,
           usesIncline: sql`excluded.uses_incline`,
+          repSeconds: sql`excluded.rep_seconds`,
           tracking: sql`excluded.tracking`,
         },
         // On ne touche pas aux exercices que le coach a écrits lui-même.

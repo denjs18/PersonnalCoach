@@ -88,6 +88,12 @@ export type EffortItem = {
   /** Exercice en pente : la dépense se calcule à partir de l'inclinaison. */
   usesIncline?: boolean;
   targetInclinePct?: number | null;
+  /**
+   * Durée d'une répétition, en secondes. Certains mouvements ne suivent pas
+   * la cadence de leur famille : un burpee avec saut prend cinq fois plus
+   * longtemps qu'une montée de genoux, pour la même famille « cardio ».
+   */
+  repSeconds?: number | null;
 };
 
 export type EffortSet = {
@@ -116,7 +122,7 @@ function parseFirstNumber(value: string | null): number | null {
 export function setEffortSeconds(item: EffortItem, set: EffortSet): number {
   if (set.timeSec && set.timeSec > 0) return set.timeSec;
 
-  const perRep = SECONDS_PER_REP[categoryOf(item)];
+  const perRep = repSecondsOf(item);
   if (set.reps && set.reps > 0) return Math.round(set.reps * perRep);
 
   if (item.targetTimeSec && item.targetTimeSec > 0) return item.targetTimeSec;
@@ -130,6 +136,13 @@ export function setEffortSeconds(item: EffortItem, set: EffortSet): number {
   if (distance && distance > 0) return Math.round((distance / 45) * 60);
 
   return 40;
+}
+
+/** Durée d'une répétition : celle de l'exercice, sinon celle de sa famille. */
+function repSecondsOf(item: EffortItem): number {
+  const own = item.repSeconds;
+  if (own !== null && own !== undefined && own > 0) return own;
+  return SECONDS_PER_REP[categoryOf(item)];
 }
 
 function restSeconds(item: EffortItem): number {

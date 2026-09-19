@@ -9,6 +9,7 @@ import {
   EFFORT_LEVELS,
   EQUIPMENT,
   EQUIPMENT_KEYS,
+  SECONDS_PER_REP,
   TRACKING,
   TRACKING_KEYS,
   nearestEffortLevel,
@@ -45,6 +46,9 @@ export function ExerciseForm({
   // Tant que le coach n'a pas choisi lui-même, l'intensité suit la catégorie.
   const [metChosen, setMetChosen] = useState(initial?.met != null);
   const [usesIncline, setUsesIncline] = useState(initial?.usesIncline ?? false);
+  const [repSeconds, setRepSeconds] = useState(
+    initial?.repSeconds != null ? String(initial.repSeconds) : "",
+  );
   const activeLevel = nearestEffortLevel(met);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -71,6 +75,7 @@ export function ExerciseForm({
         tracking,
         met,
         usesIncline,
+        repSeconds: repSeconds.trim() ? Number(repSeconds.replace(",", ".")) : null,
       });
       if (!res.ok) setError(res.error ?? "Une erreur est survenue.");
     } finally {
@@ -243,6 +248,29 @@ export function ExerciseForm({
       )}
 
       <div>
+        <label className="label" htmlFor="ex-cadence">
+          Durée d'une répétition
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            id="ex-cadence"
+            value={repSeconds}
+            onChange={(e) => setRepSeconds(e.target.value)}
+            inputMode="decimal"
+            placeholder={String(SECONDS_PER_REP[categoryKey(category)])}
+            className="field w-24 text-center font-bold"
+          />
+          <span className="text-xs font-semibold text-muted">secondes</span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-faint">
+          Sert à estimer la durée d'une série, donc les calories. Laisse vide pour suivre
+          la famille ({SECONDS_PER_REP[categoryKey(category)]} s pour «&nbsp;
+          {CATEGORIES[categoryKey(category)].label}&nbsp;»). À régler quand le mouvement
+          sort du lot : un burpee avec saut prend 5 à 6 s, une montée de genoux moins de 1 s.
+        </p>
+      </div>
+
+      <div>
         <label className="label" htmlFor="ex-muscles">
           Muscles / qualités travaillés
         </label>
@@ -325,4 +353,9 @@ export function ExerciseForm({
 /** MET par défaut d'une catégorie, en retombant sur la force si elle est inconnue. */
 function metOfCategory(category: string): number {
   return DEFAULT_MET[(category in DEFAULT_MET ? category : "force") as CategoryKey];
+}
+
+/** La catégorie, ramenée à une clé connue. */
+function categoryKey(category: string): CategoryKey {
+  return (category in CATEGORIES ? category : "force") as CategoryKey;
 }

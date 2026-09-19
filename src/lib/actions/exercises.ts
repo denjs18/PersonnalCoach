@@ -20,6 +20,8 @@ export type ExerciseInput = {
   met?: number | null;
   /** Exercice en pente : la dépense se calcule à partir de l'inclinaison. */
   usesIncline?: boolean;
+  /** Durée d'une répétition, en secondes. Vide = cadence de la catégorie. */
+  repSeconds?: number | null;
 };
 
 function clean(input: ExerciseInput): ExerciseInput {
@@ -34,7 +36,15 @@ function clean(input: ExerciseInput): ExerciseInput {
     tracking: input.tracking || "reps_weight",
     met: metOf(input),
     usesIncline: input.usesIncline ?? false,
+    repSeconds: repSecondsOf(input),
   };
+}
+
+/** La cadence retenue : celle du coach si elle est plausible, sinon rien. */
+function repSecondsOf(input: ExerciseInput): number | null {
+  const value = Number(input.repSeconds);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return Math.min(60, Math.max(0.5, value));
 }
 
 /** Le MET retenu : celui choisi par le coach, sinon celui de la catégorie. */

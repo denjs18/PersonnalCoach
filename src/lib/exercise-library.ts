@@ -15,6 +15,8 @@ export type SeedExercise = {
   met?: number;
   /** Exercice en pente : la dépense se calcule sur l'allure et l'inclinaison. */
   usesIncline?: boolean;
+  /** Durée d'une répétition en secondes, quand elle sort de la cadence de sa famille. */
+  repSeconds?: number;
   tracking: TrackingKey;
 };
 
@@ -1297,6 +1299,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Même rythme pour les deux, on ralentit ensemble plutôt que de casser la synchro.",
     met: 8,
+    repSeconds: 4,
     tracking: "reps",
   },
   {
@@ -1538,15 +1541,17 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     category: "cardio",
     equipment: ["aucun"],
     muscles: ["Corps entier", "Cardio"],
-    description: "Descente au sol, planche, remontée, saut.",
+    description: "Descente au sol, planche, remontée, puis un grand saut vers l'avant.",
     steps: [
       "Debout, accroupis-toi et pose les mains au sol.",
       "Envoie les pieds en arrière pour arriver en planche (poitrine au sol si tu veux la version complète).",
       "Ramène les pieds vers les mains d'un coup.",
-      "Redresse-toi et termine par un saut, mains au-dessus de la tête.",
+      "Redresse-toi et enchaîne un grand saut vers l'avant, les deux pieds ensemble.",
+      "Réceptionne genoux souples et repars sur le burpee suivant, là où tu as atterri.",
     ],
-    cues: "Trouve ton rythme et tiens-le. Version sans saut si besoin.",
-    met: 8,
+    cues: "On avance à chaque répétition : c'est le saut en longueur qui coûte, pas la vitesse. Réceptionne en amortissant.",
+    met: 10,
+    repSeconds: 5.5,
     tracking: "reps",
   },
   {

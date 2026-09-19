@@ -36,6 +36,8 @@ export const exercises = pgTable(
     tracking: text("tracking").notNull().default("reps_weight"),
     /** Exercice en pente (tapis incliné, côte) : la pente entre dans le calcul. */
     usesIncline: boolean("uses_incline").notNull().default(false),
+    /** Durée d'une répétition, en secondes. À défaut, celle de la catégorie. */
+    repSeconds: real("rep_seconds"),
     /** true = exercice créé à la main par le coach */
     isCustom: boolean("is_custom").notNull().default(false),
     isArchived: boolean("is_archived").notNull().default(false),
