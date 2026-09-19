@@ -272,7 +272,16 @@ export async function updateWorkoutResultAction(
     })
     .where(eq(workouts.id, workoutId));
 
-  revalidatePath("/", "layout");
+  // Rafraîchir page par page, et non toute la mise en page : une invalidation
+  // du layout racine remonte l'arbre entier et efface le « Enregistré » avant
+  // que le coach ait pu le voir — il croit alors que rien ne s'est passé.
+  revalidatePath(`/coach/seance/${workoutId}`);
+  revalidatePath("/coach");
+  revalidatePath("/coach/suivi");
+  revalidatePath("/app");
+  revalidatePath("/app/historique");
+  revalidatePath("/app/progression");
+  revalidatePath("/app/niveaux");
   return { ok: true as const };
 }
 

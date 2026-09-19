@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Flame, Loader2, RotateCcw, Timer } from "lucide-react";
 import { updateWorkoutResultAction } from "@/lib/actions/workouts";
 import { MOODS } from "@/lib/constants";
@@ -28,29 +28,62 @@ export function SessionResult({
   profile: AthleteProfile;
   loggedSets: number;
 }) {
-  const [minutes, setMinutes] = useState(initialMinutes ? String(initialMinutes) : "");
+  const texteMinutes = (v: number | null) => (v ? String(v) : "");
+  const [minutes, setMinutes] = useState(texteMinutes(initialMinutes));
   const [rating, setRating] = useState(initialRating);
   const [note, setNote] = useState(initialNote ?? "");
-  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // Référence de comparaison : ce qui est en base. Elle suit le serveur, sauf
+  // juste après un enregistrement, où c'est nous qui venons de l'écrire.
+  const [base, setBase] = useState({
+    minutes: texteMinutes(initialMinutes),
+    rating: initialRating,
+    note: initialNote ?? "",
+  });
+
+  // Le serveur a renvoyé d'autres valeurs (rafraîchissement, autre appareil) :
+  // on s'aligne, sans écraser une saisie en cours.
+  const enCours = useRef(false);
+  useEffect(() => {
+    if (enCours.current) return;
+    const venuDuServeur = {
+      minutes: texteMinutes(initialMinutes),
+      rating: initialRating,
+      note: initialNote ?? "",
+    };
+    setBase(venuDuServeur);
+    setMinutes((cur) => (cur === base.minutes ? venuDuServeur.minutes : cur));
+    setRating((cur) => (cur === base.rating ? venuDuServeur.rating : cur));
+    setNote((cur) => (cur === base.note ? venuDuServeur.note : cur));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMinutes, initialRating, initialNote]);
 
   const parsed = Number(minutes.replace(/\D/g, ""));
   const durationMinutes = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   const calories = estimateCalories(entries, profile, durationMinutes ? durationMinutes * 60 : null);
 
-  const dirty =
-    minutes !== (initialMinutes ? String(initialMinutes) : "") ||
-    rating !== initialRating ||
-    note !== (initialNote ?? "");
+  const dirty = minutes !== base.minutes || rating !== base.rating || note !== base.note;
 
   const save = async () => {
     setState("saving");
-    await updateWorkoutResultAction(workoutId, {
-      durationMinutes,
-      athleteRating: rating,
-      athleteNote: note,
-    });
-    setState("saved");
-    setTimeout(() => setState("idle"), 2200);
+    enCours.current = true;
+    try {
+      const res = await updateWorkoutResultAction(workoutId, {
+        durationMinutes,
+        athleteRating: rating,
+        athleteNote: note,
+      });
+      if (!res?.ok) throw new Error("refus du serveur");
+      setBase({ minutes: texteMinutes(durationMinutes), rating, note });
+      setMinutes(texteMinutes(durationMinutes));
+      setState("saved");
+      setTimeout(() => setState("idle"), 2600);
+    } catch {
+      setState("error");
+    } finally {
+      enCours.current = false;
+    }
   };
 
   return (
@@ -130,8 +163,11 @@ export function SessionResult({
       <button
         type="button"
         onClick={save}
-        disabled={state === "saving" || (!dirty && state !== "saved")}
-        className={cn("mt-3.5 w-full", dirty || state === "saved" ? "btn-primary" : "btn-ghost")}
+        disabled={state === "saving" || (!dirty && state !== "saved" && state !== "error")}
+        className={cn(
+          "mt-3.5 w-full",
+          state === "error" ? "btn-danger" : dirty || state === "saved" ? "btn-primary" : "btn-ghost",
+        )}
       >
         {state === "saving" ? (
           <Loader2 className="size-4 animate-spin" />
@@ -140,8 +176,26 @@ export function SessionResult({
         ) : (
           <RotateCcw className="size-4" />
         )}
-        {state === "saved" ? "Enregistré" : "Corriger le résultat"}
+        {state === "saving"
+          ? "Enregistrement…"
+          : state === "saved"
+            ? "Enregistré ✓"
+            : state === "error"
+              ? "Échec — réessayer"
+              : "Corriger le résultat"}
       </button>
+
+      {state === "saved" ? (
+        <p className="mt-2 text-center text-[11.5px] font-semibold text-energy">
+          {base.minutes ? `Durée enregistrée : ${base.minutes} min.` : "Résultat enregistré."} Les
+          calories de cette séance sont recalculées partout.
+        </p>
+      ) : null}
+      {state === "error" ? (
+        <p className="mt-2 text-center text-[11.5px] font-semibold text-danger">
+          Rien n'a été enregistré. Vérifie ta connexion et retente.
+        </p>
+      ) : null}
     </section>
   );
 }
