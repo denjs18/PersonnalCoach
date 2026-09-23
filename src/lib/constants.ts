@@ -200,15 +200,28 @@ export const RESTING_OVER_BASAL = 1.15;
  * vitesse (en mètres par minute) plutôt que d'utiliser celui de l'exercice.
  */
 export const PACE_MET: Record<string, Array<[maxMetersPerMinute: number, met: number]>> = {
-  // Rameur : les paliers suivent la puissance développée (P ≈ 2,8 / allure³),
-  // 190 m/min ≈ 2:38 au 500 m ≈ 90 W.
+  /*
+   * Rameur. Les paliers suivent la puissance développée, reliée à l'allure par
+   * la loi du frein à air P ≈ 2,8 / allure³ — vérifiée sur l'écran de la salle,
+   * qui affiche bien 79 W à 2:44 au 500 m.
+   *
+   * Les bornes tombent sur les trois allures mesurées du Compendium : 100 W
+   * vaut 7 MET, 150 W en vaut 8,5 et 200 W en vaut 12. Entre les deux on
+   * interpole ; au-dessous de 100 W on descend vers l'effort d'échauffement.
+   *
+   * À ne pas caler sur le compteur des machines : elles appliquent toutes
+   * kcal/h = 4 × watts + 300, un forfait de 300 kcal/h identique pour tout le
+   * monde, sans tenir compte du poids ni du sexe. Ce forfait vaut à lui seul
+   * 5 kcal/min, quand le métabolisme de repos réel tourne autour de 1,3.
+   */
   rameur: [
-    [150, 4],
-    [170, 5],
-    [195, 6.5],
-    [215, 8],
-    [235, 10],
-    [Infinity, 12],
+    [160, 4.5],
+    [180, 5.5],
+    [198, 6.8],
+    [213, 7.7],
+    [227, 8.5],
+    [250, 10.5],
+    [Infinity, 12.5],
   ],
   // Vélo : paliers classiques, de 15 à 30 km/h.
   velo: [
