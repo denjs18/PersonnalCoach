@@ -38,6 +38,8 @@ export const exercises = pgTable(
     usesIncline: boolean("uses_incline").notNull().default(false),
     /** Durée d'une répétition, en secondes. À défaut, celle de la catégorie. */
     repSeconds: real("rep_seconds"),
+    /** Hauteur parcourue par la charge sur une répétition, en mètres. */
+    repRangeM: real("rep_range_m"),
     /** true = exercice créé à la main par le coach */
     isCustom: boolean("is_custom").notNull().default(false),
     isArchived: boolean("is_archived").notNull().default(false),

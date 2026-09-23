@@ -223,6 +223,26 @@ export const PACE_MET: Record<string, Array<[maxMetersPerMinute: number, met: nu
     [250, 10.5],
     [Infinity, 12.5],
   ],
+  /*
+   * Ski erg. Même frein à air que le rameur, donc une allure donnée vaut la
+   * même puissance, et les bornes sont reprises telles quelles. Les MET sont
+   * majorés de 10 % : à watts égaux, un effort mené par le haut du corps coûte
+   * plus cher que le même effort poussé par les jambes.
+   *
+   * Cette majoration est moins solidement étayée que la table du rameur — le
+   * Compendium n'a pas d'entrée pour le ski erg — mais elle vaut mieux qu'une
+   * intensité figée qui ne regardait pas du tout l'allure.
+   */
+  ski_erg: [
+    [160, 5],
+    [180, 6],
+    [198, 7.5],
+    [213, 8.5],
+    [227, 9.4],
+    [250, 11.5],
+    [Infinity, 13.5],
+  ],
+
   // Vélo : paliers classiques, de 15 à 30 km/h.
   velo: [
     [250, 4],

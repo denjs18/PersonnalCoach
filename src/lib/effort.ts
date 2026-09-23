@@ -94,6 +94,12 @@ export type EffortItem = {
    * longtemps qu'une montée de genoux, pour la même famille « cardio ».
    */
   repSeconds?: number | null;
+  /**
+   * Hauteur parcourue par la charge sur une répétition, en mètres. Une balle
+   * de wall ball monte de près de deux mètres là où un haltère de curl en fait
+   * quarante centimètres : la famille ne suffit pas à le dire.
+   */
+  repRangeM?: number | null;
 };
 
 export type EffortSet = {
@@ -136,6 +142,13 @@ export function setEffortSeconds(item: EffortItem, set: EffortSet): number {
   if (distance && distance > 0) return Math.round((distance / 45) * 60);
 
   return 40;
+}
+
+/** Amplitude d'une répétition : celle de l'exercice, sinon celle de sa famille. */
+function repRangeOf(item: EffortItem): number {
+  const own = item.repRangeM;
+  if (own !== null && own !== undefined && own > 0) return own;
+  return REP_RANGE_M[categoryOf(item)];
 }
 
 /** Durée d'une répétition : celle de l'exercice, sinon celle de sa famille. */
@@ -206,6 +219,7 @@ function paceTableFor(item: EffortItem): Array<[number, number]> | null {
   const equipment = item.equipment ?? [];
   if (equipment.includes("traineau")) return null; // charge tractée : l'allure ne dit rien
   if (equipment.includes("rameur")) return PACE_MET.rameur;
+  if (equipment.includes("ski_erg")) return PACE_MET.ski_erg;
   if (equipment.includes("velo")) return PACE_MET.velo;
   // Pas de machine : une distance parcourue, c'est de la marche ou de la course.
   if (equipment.length === 0 || equipment.includes("aucun") || equipment.includes("poids_du_corps")) {
@@ -291,7 +305,7 @@ function loadCalories(item: EffortItem, set: EffortSet, profile: AthleteProfile)
   // Soulevée : le travail d'une répétition, montée et descente, fois le nombre.
   const reps = set.reps ?? parseFirstNumber(item.targetReps);
   if (reps && reps > 0) {
-    const range = REP_RANGE_M[categoryOf(item)];
+    const range = repRangeOf(item);
     const joules = reps * load * GRAVITY * range * ECCENTRIC_FACTOR;
     return joules / MUSCLE_EFFICIENCY / JOULES_PER_KCAL;
   }

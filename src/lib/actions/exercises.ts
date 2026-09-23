@@ -22,6 +22,8 @@ export type ExerciseInput = {
   usesIncline?: boolean;
   /** Durée d'une répétition, en secondes. Vide = cadence de la catégorie. */
   repSeconds?: number | null;
+  /** Hauteur parcourue par la charge, en mètres. Vide = celle de la catégorie. */
+  repRangeM?: number | null;
 };
 
 function clean(input: ExerciseInput): ExerciseInput {
@@ -37,14 +39,20 @@ function clean(input: ExerciseInput): ExerciseInput {
     met: metOf(input),
     usesIncline: input.usesIncline ?? false,
     repSeconds: repSecondsOf(input),
+    repRangeM: borne(input.repRangeM, 0.05, 3),
   };
 }
 
 /** La cadence retenue : celle du coach si elle est plausible, sinon rien. */
 function repSecondsOf(input: ExerciseInput): number | null {
-  const value = Number(input.repSeconds);
-  if (!Number.isFinite(value) || value <= 0) return null;
-  return Math.min(60, Math.max(0.5, value));
+  return borne(input.repSeconds, 0.5, 60);
+}
+
+/** Une valeur saisie, ramenée dans des bornes plausibles. Vide reste vide. */
+function borne(valeur: number | null | undefined, min: number, max: number): number | null {
+  const n = Number(valeur);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.min(max, Math.max(min, n));
 }
 
 /** Le MET retenu : celui choisi par le coach, sinon celui de la catégorie. */

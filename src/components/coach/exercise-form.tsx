@@ -9,6 +9,7 @@ import {
   EFFORT_LEVELS,
   EQUIPMENT,
   EQUIPMENT_KEYS,
+  REP_RANGE_M,
   SECONDS_PER_REP,
   TRACKING,
   TRACKING_KEYS,
@@ -49,6 +50,9 @@ export function ExerciseForm({
   const [repSeconds, setRepSeconds] = useState(
     initial?.repSeconds != null ? String(initial.repSeconds) : "",
   );
+  const [repRange, setRepRange] = useState(
+    initial?.repRangeM != null ? String(initial.repRangeM) : "",
+  );
   const activeLevel = nearestEffortLevel(met);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -76,6 +80,7 @@ export function ExerciseForm({
         met,
         usesIncline,
         repSeconds: repSeconds.trim() ? Number(repSeconds.replace(",", ".")) : null,
+        repRangeM: repRange.trim() ? Number(repRange.replace(",", ".")) : null,
       });
       if (!res.ok) setError(res.error ?? "Une erreur est survenue.");
     } finally {
@@ -267,6 +272,28 @@ export function ExerciseForm({
           la famille ({SECONDS_PER_REP[categoryKey(category)]} s pour «&nbsp;
           {CATEGORIES[categoryKey(category)].label}&nbsp;»). À régler quand le mouvement
           sort du lot : un burpee avec saut prend 5 à 6 s, une montée de genoux moins de 1 s.
+        </p>
+      </div>
+
+      <div>
+        <label className="label" htmlFor="ex-amplitude">
+          Hauteur parcourue par la charge
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            id="ex-amplitude"
+            value={repRange}
+            onChange={(e) => setRepRange(e.target.value)}
+            inputMode="decimal"
+            placeholder={String(REP_RANGE_M[categoryKey(category)])}
+            className="field w-24 text-center font-bold"
+          />
+          <span className="text-xs font-semibold text-muted">mètres par répétition</span>
+        </div>
+        <p className="mt-1 text-[11px] leading-relaxed text-faint">
+          Ce que la charge monte à chaque répétition. Laisse vide pour suivre la famille
+          ({REP_RANGE_M[categoryKey(category)]} m). À régler quand la charge voyage loin :
+          une balle de wall ball monte de près de 2 m, un curl de 40 cm.
         </p>
       </div>
 

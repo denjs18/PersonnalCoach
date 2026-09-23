@@ -17,6 +17,8 @@ export type SeedExercise = {
   usesIncline?: boolean;
   /** Durée d'une répétition en secondes, quand elle sort de la cadence de sa famille. */
   repSeconds?: number;
+  /** Hauteur parcourue par la charge en mètres, quand la famille ne la décrit pas. */
+  repRangeM?: number;
   tracking: TrackingKey;
 };
 
@@ -486,6 +488,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Redescends lentement à hauteur d'épaules.",
     ],
     cues: "Fessiers et abdos serrés, ne cambre pas. Verrouille les coudes en haut.",
+    repRangeM: 0.55,
     tracking: "reps_weight",
   },
   {
@@ -686,6 +689,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Coudes serrés vers l'avant, côtes basses, mouvement lent.",
     met: 3.5,
+    repRangeM: 0.5,
     tracking: "reps_weight",
   },
   {
@@ -720,6 +724,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Extension complète en haut, gaine avant de claquer, accompagne la balle jusqu'au sol.",
     met: 7,
+    repRangeM: 1.5,
     tracking: "reps_weight",
   },
   {
@@ -736,6 +741,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "La balle part de la poitrine, la puissance vient des jambes. Réceptionne en amortissant vers le squat suivant.",
     met: 8,
+    repRangeM: 1.6,
     tracking: "reps_weight",
   },
   {
@@ -768,6 +774,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Charnière de hanche pour ramasser, extension explosive. Alterne les épaules.",
     met: 7,
+    repRangeM: 1.4,
     tracking: "reps_weight",
   },
   {
@@ -864,6 +871,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Un pas à la fois, le regard reste sur la charge. Commence sans poids pour apprendre.",
     met: 5,
+    repRangeM: 1.3,
     tracking: "reps_weight",
   },
   {
@@ -944,6 +952,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Extension jambes-hanches d'abord, les coudes passent vite dessous. Charge modérée.",
     met: 6.5,
+    repRangeM: 1.0,
     tracking: "reps_weight",
   },
   {
@@ -960,6 +969,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Trajet proche du corps, extension explosive, verrouille le bras en haut.",
     met: 7,
+    repRangeM: 1.5,
     tracking: "reps_weight",
   },
   {
@@ -1142,6 +1152,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
       "Les pieds ne touchent jamais le sol, c'est là qu'est le travail. La balle part quand le buste est en haut, pas avant.",
     met: 7,
     repSeconds: 3.5,
+    repRangeM: 1.1,
     tracking: "reps_weight",
   },
   {
