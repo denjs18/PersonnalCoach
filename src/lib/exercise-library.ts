@@ -1130,16 +1130,19 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     category: "duo",
     equipment: ["medecine_ball", "partenaire"],
     muscles: ["Abdos", "Obliques"],
-    description: "Face à face pieds contre pieds, la balle passe à chaque relevé.",
+    description:
+      "Face à face, pieds décollés du sol, la balle part de derrière la tête et se lance au partenaire en se relevant.",
     steps: [
-      "Allongez-vous face à face, genoux pliés, plantes de pieds l'une contre l'autre.",
-      "L'un tient la balle sur la poitrine et remonte en déroulant le dos.",
-      "En haut, il lance la balle à l'autre qui est redescendu.",
-      "Alternez : quand l'un monte, l'autre descend.",
+      "Allongez-vous face à face à deux mètres, genoux pliés et pieds décollés du sol.",
+      "Balle tenue à deux mains, bras tendus derrière la tête, presque au sol.",
+      "Relève-toi d'un bloc en amenant la balle au-dessus de toi, et lance-la à ta partenaire.",
+      "Redescends en réceptionnant la balle bras tendus derrière la tête, et enchaîne.",
     ],
-    cues: "Déroule le dos, la balle part quand le buste est en haut.",
-    met: 5,
-    tracking: "reps",
+    cues:
+      "Les pieds ne touchent jamais le sol, c'est là qu'est le travail. La balle part quand le buste est en haut, pas avant.",
+    met: 7,
+    repSeconds: 3.5,
+    tracking: "reps_weight",
   },
   {
     name: "Planche tape-mains",
