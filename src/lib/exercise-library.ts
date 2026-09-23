@@ -1506,6 +1506,24 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
 
   /* -------------------------------- CARDIO -------------------------------- */
   {
+    name: "Ski erg",
+    category: "cardio",
+    equipment: ["ski_erg"],
+    muscles: ["Dos", "Épaules", "Gainage", "Cardio"],
+    description: "Debout face à la machine, on tire les deux poignées vers le bas comme en ski de fond.",
+    steps: [
+      "Debout face à la machine, une poignée dans chaque main, bras tendus au-dessus de la tête.",
+      "Tire les deux poignées vers le bas en pliant le buste et les hanches, comme pour planter les bâtons.",
+      "Termine bras le long du corps, mains derrière les cuisses, abdos serrés.",
+      "Redresse-toi en laissant les poignées remonter, et enchaîne sans marquer d'arrêt.",
+    ],
+    cues:
+      "Ce sont les abdos et le dos qui tirent, pas seulement les bras. Le buste plie et se redresse à chaque coup.",
+    met: 9,
+    tracking: "time_distance",
+  },
+
+  {
     name: "Rameur — intervalles",
     category: "cardio",
     equipment: ["rameur"],

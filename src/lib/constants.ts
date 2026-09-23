@@ -25,6 +25,7 @@ export const EQUIPMENT = {
   disque: "Disque",
   traineau: "Traîneau / chariot",
   rameur: "Rameur",
+  ski_erg: "Ski erg",
   velo: "Vélo",
   corde_a_sauter: "Corde à sauter",
   corde_ondulatoire: "Battle rope",
