@@ -42,7 +42,7 @@ import { CategoryBadge } from "@/components/ui";
 import { ExerciseHowTo } from "@/components/exercise-how-to";
 import { RestTimer } from "./rest-timer";
 import { cn, formatDistance, formatDuration, formatWeight } from "@/lib/utils";
-import { needsDistance, needsReps, needsTime, needsWeight } from "@/lib/tracking";
+import { needsDistance, needsReps, needsSteps, needsTime, needsWeight } from "@/lib/tracking";
 
 /* ------------------------------- Types ----------------------------------- */
 
@@ -55,6 +55,7 @@ export type SetState = {
   timeSec: number | null;
   distanceM: number | null;
   inclinePct: number | null;
+  steps: number | null;
   rpe: number | null;
   done: boolean;
 };
@@ -80,6 +81,7 @@ export type PlayerItemData = {
   targetTimeSec: number | null;
   targetDistanceM: number | null;
   targetInclinePct: number | null;
+  targetSteps: number | null;
   restSec: number | null;
   note: string | null;
   supersetGroup: string | null;
@@ -296,6 +298,7 @@ export function WorkoutPlayer({
             timeSec: null,
             distanceM: null,
             inclinePct: null,
+            steps: null,
             rpe: null,
             done: false,
           }
@@ -361,6 +364,7 @@ export function WorkoutPlayer({
           timeSec: s.timeSec,
           distanceM: s.distanceM,
           inclinePct: s.inclinePct,
+          steps: s.steps,
           rpe: s.rpe,
           done: s.done,
         });
@@ -462,6 +466,7 @@ export function WorkoutPlayer({
             timeSec: null,
             distanceM: null,
             inclinePct: list[list.length - 1]?.inclinePct ?? null,
+            steps: null,
             rpe: null,
             done: false,
           },
@@ -963,6 +968,7 @@ function SetHeader({ tracking }: { tracking: string }) {
     if (needsWeight(tracking)) units.push("kg");
     if (needsTime(tracking)) units.push("min : sec");
     if (needsDistance(tracking)) units.push("mètres");
+    if (needsSteps(tracking)) units.push("marches");
   }
 
   return (
@@ -1006,6 +1012,7 @@ function SetRow({
     reps: targets.targetReps ?? "—",
     weight: targets.targetWeight !== null ? displayNumber(targets.targetWeight) : "—",
     distance: targets.targetDistanceM !== null ? String(targets.targetDistanceM) : "—",
+    steps: targets.targetSteps !== null ? String(targets.targetSteps) : "—",
   };
   return (
     <div
@@ -1082,6 +1089,16 @@ function SetRow({
                 placeholder={hint.distance}
                 disabled={readOnly}
                 ariaLabel={`Distance en mètres — ${context}`}
+              />
+            ) : null}
+            {needsSteps(tracking) ? (
+              <Stepper
+                value={set.steps}
+                onChange={(v) => onPatch({ steps: v })}
+                step={25}
+                placeholder={hint.steps}
+                disabled={readOnly}
+                ariaLabel={`Marches gravies — ${context}`}
               />
             ) : null}
           </>
@@ -1408,6 +1425,7 @@ function toEffortItem(item: PlayerItemData): EffortItem {
     targetTimeSec: item.targetTimeSec,
     targetDistanceM: item.targetDistanceM,
     targetInclinePct: item.targetInclinePct,
+    targetSteps: item.targetSteps,
     targetReps: item.targetReps,
   };
 }
@@ -1429,6 +1447,7 @@ function targetLabel(item: PlayerItemData): string {
   if (item.targetReps) parts.push(`${item.targetReps} reps`);
   if (item.targetTimeSec) parts.push(formatDuration(item.targetTimeSec));
   if (item.targetDistanceM) parts.push(formatDistance(item.targetDistanceM));
+  if (item.targetSteps) parts.push(`${item.targetSteps} marches`);
   if (item.targetWeight) parts.push(formatWeight(item.targetWeight));
   if (item.restSec) parts.push(`repos ${item.restSec}s`);
   return parts.join(" · ");

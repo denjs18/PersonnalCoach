@@ -114,6 +114,7 @@ export const workoutItems = pgTable(
     targetTimeSec: integer("target_time_sec"),
     targetDistanceM: integer("target_distance_m"),
     targetInclinePct: real("target_incline_pct"),
+    targetSteps: integer("target_steps"),
     restSec: integer("rest_sec"),
     note: text("note"),
     /** "A", "B"… pour enchaîner deux exos en superset */
@@ -147,6 +148,8 @@ export const setLogs = pgTable(
     timeSec: integer("time_sec"),
     distanceM: integer("distance_m"),
     inclinePct: real("incline_pct"),
+    /** Marches gravies, pour les machines à escalier. */
+    steps: integer("steps"),
     /** 1→10, difficulté ressentie */
     rpe: integer("rpe"),
     done: boolean("done").notNull().default(false),

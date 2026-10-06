@@ -18,6 +18,7 @@ export type PlanItem = {
   targetTimeSec: number | null;
   targetDistanceM: number | null;
   targetInclinePct: number | null;
+  targetSteps: number | null;
   restSec: number | null;
   note: string | null;
   supersetGroup: string | null;
@@ -89,6 +90,7 @@ export async function duplicateWorkoutAction(sourceId: string, targetDate: strin
         targetTimeSec: item.targetTimeSec,
         targetDistanceM: item.targetDistanceM,
         targetInclinePct: item.targetInclinePct,
+        targetSteps: item.targetSteps,
         restSec: item.restSec,
         note: item.note,
         supersetGroup: item.supersetGroup,
@@ -139,6 +141,7 @@ export async function saveAsTemplateAction(workoutId: string, name: string) {
         targetTimeSec: item.targetTimeSec,
         targetDistanceM: item.targetDistanceM,
         targetInclinePct: item.targetInclinePct,
+        targetSteps: item.targetSteps,
         restSec: item.restSec,
         note: item.note,
         supersetGroup: item.supersetGroup,
@@ -204,6 +207,7 @@ export async function saveWorkoutPlanAction(
       targetTimeSec: item.targetTimeSec,
       targetDistanceM: item.targetDistanceM,
       targetInclinePct: item.targetInclinePct,
+        targetSteps: item.targetSteps,
       restSec: item.restSec,
       note: item.note?.trim() || null,
       supersetGroup: item.supersetGroup?.trim() || null,

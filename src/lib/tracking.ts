@@ -15,7 +15,12 @@ export function needsWeight(tracking: string) {
 }
 
 export function needsTime(tracking: string) {
-  return tracking === "time" || tracking === "time_distance";
+  return tracking === "time" || tracking === "time_distance" || tracking === "time_steps";
+}
+
+/** Les machines à escalier comptent des marches, pas des mètres. */
+export function needsSteps(tracking: string) {
+  return tracking === "time_steps";
 }
 
 export function needsDistance(tracking: string) {

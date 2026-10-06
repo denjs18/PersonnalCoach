@@ -223,6 +223,7 @@ export function WorkoutBuilder({
         targetTimeSec: defaultTime(exercise.tracking, section),
         targetDistanceM: null,
         targetInclinePct: null,
+        targetSteps: null,
         restSec: section === "principal" ? 60 : null,
         note: null,
         supersetGroup: null,
@@ -776,6 +777,20 @@ function ItemEditor({
             />
           </div>
 
+          {tracking === "time_steps" ? (
+            <NumField
+              label="Marches cibles"
+              value={item.targetSteps}
+              step={50}
+              onChange={(v) => onPatch({ targetSteps: v })}
+              hint={
+                item.targetSteps && item.targetTimeSec
+                  ? `${Math.round((item.targetSteps / item.targetTimeSec) * 60)} marches/min`
+                  : undefined
+              }
+            />
+          ) : null}
+
           {item.exerciseUsesIncline ? (
             <NumField
               label="Pente cible (%)"
@@ -1033,6 +1048,7 @@ function toPlanItem(item: BuilderItem): PlanItem {
     targetTimeSec: item.targetTimeSec,
     targetDistanceM: item.targetDistanceM,
     targetInclinePct: item.targetInclinePct,
+    targetSteps: item.targetSteps,
     restSec: item.restSec,
     note: item.note,
     supersetGroup: item.supersetGroup,
@@ -1088,6 +1104,7 @@ function UnrecordableTargets({ item, tracking }: { item: BuilderItem; tracking: 
   if (item.targetTimeSec && !needsTime(tracking)) perdus.push("la durée");
   if (item.targetDistanceM && !needsDistance(tracking)) perdus.push("la distance");
   if (item.targetInclinePct && !item.exerciseUsesIncline) perdus.push("la pente");
+  if (item.targetSteps && tracking !== "time_steps") perdus.push("les marches");
   if (perdus.length === 0) return null;
 
   const pluriel = perdus.length > 1;

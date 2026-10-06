@@ -62,6 +62,7 @@ export const TRACKING = {
   time: { label: "Durée", short: "Temps" },
   distance: { label: "Distance", short: "Distance" },
   distance_weight: { label: "Distance + charge", short: "Dist. × kg" },
+  time_steps: { label: "Durée + marches", short: "Temps + march." },
   time_distance: { label: "Durée + distance", short: "Temps + dist." },
 } as const;
 
@@ -125,6 +126,20 @@ export const REP_RANGE_M: Record<CategoryKey, number> = {
   plyo: 0.4,
   mobilite: 0.3,
 };
+
+/**
+ * Monter un escalier, c'est soulever tout son poids de corps, marche après
+ * marche. La dépense se calcule donc en travail vertical, et non à partir
+ * d'une intensité moyenne : 30 marches par minute et 90 ne sont pas le même
+ * exercice.
+ *
+ * Hauteur d'une marche sur les machines de salle : 20 cm. Le rendement de la
+ * montée tourne autour de 22 %, ce qui place le modèle à 9 MET pour
+ * 64 marches par minute — exactement la valeur mesurée du Compendium pour un
+ * ergomètre à escalier.
+ */
+export const STEP_HEIGHT_M = 0.2;
+export const STAIR_EFFICIENCY = 0.22;
 
 /** Traîneau : c'est le frottement au sol qui coûte, pas une montée. */
 export const SLED_FRICTION = 0.4;

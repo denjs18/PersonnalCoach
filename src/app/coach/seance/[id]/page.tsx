@@ -38,6 +38,7 @@ export default async function CoachWorkoutPage({ params }: { params: Promise<{ i
     targetTimeSec: item.targetTimeSec,
     targetDistanceM: item.targetDistanceM,
     targetInclinePct: item.targetInclinePct,
+    targetSteps: item.targetSteps,
     restSec: item.restSec,
     note: item.note,
     supersetGroup: item.supersetGroup,

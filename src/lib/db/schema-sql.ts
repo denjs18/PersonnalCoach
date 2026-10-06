@@ -78,10 +78,12 @@ export const SCHEMA_STATEMENTS: string[] = [
     note              text,
     superset_group    text,
     tracking          text,
-    target_incline_pct real
+    target_incline_pct real,
+    target_steps      integer
   )`,
 
   `ALTER TABLE workout_items ADD COLUMN IF NOT EXISTS target_incline_pct real`,
+  `ALTER TABLE workout_items ADD COLUMN IF NOT EXISTS target_steps integer`,
 
   `CREATE INDEX IF NOT EXISTS workout_items_workout_idx ON workout_items (workout_id)`,
 
@@ -96,6 +98,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     time_sec        integer,
     distance_m      integer,
     incline_pct     real,
+    steps           integer,
     rpe             integer,
     done            boolean NOT NULL DEFAULT false,
     performed_on    date,
@@ -103,6 +106,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   )`,
 
   `ALTER TABLE set_logs ADD COLUMN IF NOT EXISTS incline_pct real`,
+  `ALTER TABLE set_logs ADD COLUMN IF NOT EXISTS steps integer`,
 
   `CREATE UNIQUE INDEX IF NOT EXISTS set_logs_item_set_unique ON set_logs (workout_item_id, set_number)`,
   `CREATE INDEX IF NOT EXISTS set_logs_exercise_idx ON set_logs (exercise_id)`,

@@ -1665,7 +1665,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     cues:
       "Ne te suspends pas aux poignées : t'alléger de ton propre poids, c'est enlever tout l'intérêt de l'exercice. Pied à plat, pas sur la pointe.",
     met: 9,
-    tracking: "time_distance",
+    tracking: "time_steps",
   },
 
   {

@@ -8,6 +8,8 @@ import {
   MAX_GAP_SECONDS,
   MUSCLE_EFFICIENCY,
   REP_RANGE_M,
+  STAIR_EFFICIENCY,
+  STEP_HEIGHT_M,
   SLED_FRICTION,
   SLED_OWN_MASS_KG,
   PACE_MET,
@@ -88,6 +90,7 @@ export type EffortItem = {
   /** Exercice en pente : la dépense se calcule à partir de l'inclinaison. */
   usesIncline?: boolean;
   targetInclinePct?: number | null;
+  targetSteps?: number | null;
   /**
    * Durée d'une répétition, en secondes. Certains mouvements ne suivent pas
    * la cadence de leur famille : un burpee avec saut prend cinq fois plus
@@ -108,6 +111,8 @@ export type EffortSet = {
   timeSec: number | null;
   distanceM: number | null;
   inclinePct?: number | null;
+  /** Marches gravies, pour les machines à escalier. */
+  steps?: number | null;
   done: boolean;
 };
 
@@ -257,8 +262,41 @@ export function inclineMet(metersPerMinute: number, inclinePct: number): number 
   return (horizontal + vertical + 3.5) / 3.5;
 }
 
+/**
+ * Coût d'une montée d'escalier, en MET.
+ *
+ * Monter une marche, c'est soulever tout son poids de corps de sa hauteur.
+ * On calcule donc la puissance verticale réellement produite, on la divise
+ * par le rendement de la montée, et on la rapporte au métabolisme de repos
+ * de la personne. Trente marches par minute et quatre-vingt-dix ne sont pas
+ * le même exercice, et ça se voit.
+ */
+function stairMet(
+  steps: number,
+  seconds: number,
+  profile: AthleteProfile,
+  perMinute: number,
+): number | null {
+  if (!profile.weightKg || steps <= 0 || seconds <= 0) return null;
+  const wattsPerMet = (perMinute * JOULES_PER_KCAL) / 60;
+  if (wattsPerMet <= 0) return null;
+  const climbWatts = (profile.weightKg * GRAVITY * steps * STEP_HEIGHT_M) / seconds;
+  return climbWatts / STAIR_EFFICIENCY / wattsPerMet;
+}
+
 function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): number {
   const base = item.met ?? DEFAULT_MET[categoryOf(item)];
+
+  // Escalier : des marches et un temps suffisent à tout dire.
+  const steps = set.steps ?? item.targetSteps;
+  if (steps && steps > 0) {
+    const perMinute = restingKcalPerMinute(profile);
+    const seconds = set.timeSec ?? item.targetTimeSec ?? 0;
+    if (perMinute !== null) {
+      const met = stairMet(steps, seconds, profile, perMinute);
+      if (met !== null) return met;
+    }
+  }
 
   // Exercice en pente : c'est l'inclinaison qui commande, pas la table d'allure
   // à plat, qui prendrait une montée lente pour une promenade.

@@ -17,6 +17,7 @@ export type SetEntry = {
   timeSec: number | null;
   distanceM: number | null;
   inclinePct: number | null;
+  steps: number | null;
   rpe: number | null;
   done: boolean;
 };
@@ -67,6 +68,7 @@ export async function saveSetLogsAction(workoutId: string, entries: SetEntry[]) 
         timeSec: e.timeSec,
         distanceM: e.distanceM,
         inclinePct: e.inclinePct,
+        steps: e.steps,
         rpe: e.rpe,
         done: e.done,
         performedOn,
@@ -80,6 +82,7 @@ export async function saveSetLogsAction(workoutId: string, entries: SetEntry[]) 
         timeSec: sql`excluded.time_sec`,
         distanceM: sql`excluded.distance_m`,
         inclinePct: sql`excluded.incline_pct`,
+        steps: sql`excluded.steps`,
         rpe: sql`excluded.rpe`,
         done: sql`excluded.done`,
         performedOn: sql`excluded.performed_on`,
