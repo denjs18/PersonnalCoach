@@ -26,6 +26,7 @@ export const EQUIPMENT = {
   traineau: "Traîneau / chariot",
   rameur: "Rameur",
   ski_erg: "Ski erg",
+  escalier: "Monte-escalier",
   velo: "Vélo",
   corde_a_sauter: "Corde à sauter",
   corde_ondulatoire: "Battle rope",

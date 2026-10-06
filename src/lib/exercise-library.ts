@@ -1651,6 +1651,24 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     tracking: "time",
   },
   {
+    name: "Monte-escalier",
+    category: "cardio",
+    equipment: ["escalier"],
+    muscles: ["Fessiers", "Quadriceps", "Mollets", "Cardio"],
+    description: "Montée de marches en continu sur la machine, sans s'appuyer sur les poignées.",
+    steps: [
+      "Monte sur la machine et règle le niveau : les marches doivent défiler à un rythme que tu tiens 10 minutes.",
+      "Pose le pied à plat sur chaque marche, talon compris, et pousse dans le talon pour monter.",
+      "Buste droit, mains posées sur les poignées pour l'équilibre seulement — sans t'y suspendre.",
+      "Garde le même rythme : c'est la régularité qui fait le travail, pas les à-coups.",
+    ],
+    cues:
+      "Ne te suspends pas aux poignées : t'alléger de ton propre poids, c'est enlever tout l'intérêt de l'exercice. Pied à plat, pas sur la pointe.",
+    met: 9,
+    tracking: "time_distance",
+  },
+
+  {
     name: "Marche en côte / tapis incliné",
     category: "cardio",
     equipment: ["aucun"],
