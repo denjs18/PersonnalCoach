@@ -284,14 +284,31 @@ function stairMet(
   return climbWatts / STAIR_EFFICIENCY / wattsPerMet;
 }
 
+/**
+ * Marches retenues pour une série.
+ *
+ * Comptées si elles ont été notées. Sinon on retient la *cadence* visée par
+ * le coach, pas son total : écourter la série doit coûter moins cher, pas
+ * autant. Un objectif de 600 marches en 10 minutes vaut 60 marches par
+ * minute, donc 360 marches si elle s'arrête à 6 minutes.
+ */
+function stepsOf(item: EffortItem, set: EffortSet, seconds: number): number | null {
+  if (set.steps && set.steps > 0) return set.steps;
+  const cible = item.targetSteps;
+  const cibleSec = item.targetTimeSec;
+  if (!cible || cible <= 0) return null;
+  if (!cibleSec || cibleSec <= 0 || seconds <= 0) return cible;
+  return (cible / cibleSec) * seconds;
+}
+
 function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): number {
   const base = item.met ?? DEFAULT_MET[categoryOf(item)];
 
   // Escalier : des marches et un temps suffisent à tout dire.
-  const steps = set.steps ?? item.targetSteps;
-  if (steps && steps > 0) {
+  const seconds = set.timeSec ?? item.targetTimeSec ?? 0;
+  const steps = stepsOf(item, set, seconds);
+  if (steps && steps > 0 && seconds > 0) {
     const perMinute = restingKcalPerMinute(profile);
-    const seconds = set.timeSec ?? item.targetTimeSec ?? 0;
     if (perMinute !== null) {
       const met = stairMet(steps, seconds, profile, perMinute);
       if (met !== null) return met;
