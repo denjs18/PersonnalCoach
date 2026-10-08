@@ -1133,7 +1133,11 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     ],
     cues: "Squat complet avant chaque passe. Rythme régulier, on ne se précipite pas.",
     met: 6,
-    tracking: "reps",
+    // La balle monte du buste accroupi jusqu'au lâcher debout : 0,85 m.
+    // Un cycle squat + lancer + rattrapé prend plus de temps qu'une passe simple.
+    repSeconds: 4,
+    repRangeM: 0.85,
+    tracking: "reps_weight",
   },
   {
     name: "Sit-up avec passe",
