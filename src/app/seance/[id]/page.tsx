@@ -59,6 +59,7 @@ export default async function SeancePage({ params }: { params: Promise<{ id: str
     section: item.section,
     met: item.exercise.met,
     usesIncline: item.exercise.usesIncline,
+    isRunning: item.exercise.isRunning,
     repSeconds: item.exercise.repSeconds,
     repRangeM: item.exercise.repRangeM,
     sets: item.sets,

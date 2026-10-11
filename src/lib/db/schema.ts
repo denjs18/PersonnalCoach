@@ -36,6 +36,8 @@ export const exercises = pgTable(
     tracking: text("tracking").notNull().default("reps_weight"),
     /** Exercice en pente (tapis incliné, côte) : la pente entre dans le calcul. */
     usesIncline: boolean("uses_incline").notNull().default(false),
+    /** Exercice couru : à allure égale, courir coûte le double de marcher. */
+    isRunning: boolean("is_running").notNull().default(false),
     /** Durée d'une répétition, en secondes. À défaut, celle de la catégorie. */
     repSeconds: real("rep_seconds"),
     /** Hauteur parcourue par la charge sur une répétition, en mètres. */

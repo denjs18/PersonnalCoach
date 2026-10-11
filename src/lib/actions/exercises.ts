@@ -20,6 +20,7 @@ export type ExerciseInput = {
   met?: number | null;
   /** Exercice en pente : la dépense se calcule à partir de l'inclinaison. */
   usesIncline?: boolean;
+  isRunning?: boolean;
   /** Durée d'une répétition, en secondes. Vide = cadence de la catégorie. */
   repSeconds?: number | null;
   /** Hauteur parcourue par la charge, en mètres. Vide = celle de la catégorie. */
@@ -38,6 +39,7 @@ function clean(input: ExerciseInput): ExerciseInput {
     tracking: input.tracking || "reps_weight",
     met: metOf(input),
     usesIncline: input.usesIncline ?? false,
+    isRunning: input.isRunning ?? false,
     repSeconds: repSecondsOf(input),
     repRangeM: borne(input.repRangeM, 0.05, 3),
   };

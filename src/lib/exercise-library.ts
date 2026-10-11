@@ -15,6 +15,7 @@ export type SeedExercise = {
   met?: number;
   /** Exercice en pente : la dépense se calcule sur l'allure et l'inclinaison. */
   usesIncline?: boolean;
+  isRunning?: boolean;
   /** Durée d'une répétition en secondes, quand elle sort de la cadence de sa famille. */
   repSeconds?: number;
   /** Hauteur parcourue par la charge en mètres, quand la famille ne la décrit pas. */
@@ -1706,6 +1707,7 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     // MET de secours uniquement : dès qu'un temps et une distance sont notés,
     // c'est l'allure réelle qui commande, kilomètre par kilomètre.
     met: 8,
+    isRunning: true,
     tracking: "time_distance",
   },
   {

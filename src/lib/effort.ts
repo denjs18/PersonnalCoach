@@ -13,6 +13,7 @@ import {
   SLED_FRICTION,
   SLED_OWN_MASS_KG,
   COURSE_MET_CURVE,
+  MARCHE_MET_CURVE,
   PACE_MET,
   REST_MET,
   RESTING_OVER_BASAL,
@@ -98,6 +99,8 @@ export type EffortItem = {
    * longtemps qu'une montée de genoux, pour la même famille « cardio ».
    */
   repSeconds?: number | null;
+  /** Exercice couru : à allure égale, courir coûte le double de marcher. */
+  isRunning?: boolean;
   /**
    * Hauteur parcourue par la charge sur une répétition, en mètres. Une balle
    * de wall ball monte de près de deux mètres là où un haltère de curl en fait
@@ -241,14 +244,19 @@ function onFoot(item: EffortItem): boolean {
  * Coût d'un déplacement à pied, en MET, d'après l'allure.
  *
  * On interpole entre les allures mesurées du Compendium au lieu de ranger
- * l'allure dans un palier. Un kilomètre à 6,9 km/h n'est pas un kilomètre de
- * course à 8 km/h : c'est de la marche et de la course en alternance, et son
- * coût est la moyenne des deux. Le palier le facturerait 8,3 MET, la courbe
- * en donne 6,1.
+ * l'allure dans un palier. Un kilomètre marché à 6,9 km/h n'est pas un
+ * kilomètre de course à 8 km/h : c'est de la marche entrecoupée de trot, et
+ * son coût est la moyenne des deux. Le palier le facturerait 8,3 MET, la
+ * courbe en donne 6,1.
+ *
+ * Marcher et courir sont deux courbes distinctes, et l'écart est énorme : à
+ * 5 km/h, 3,5 MET en marchant contre 5,6 en courant. L'allure seule ne permet
+ * pas de trancher — un kilomètre lent peut être une marche tranquille comme
+ * une course hachée d'arrêts — c'est donc l'exercice qui le dit.
  */
-export function courseMet(metersPerMinute: number): number {
+export function courseMet(metersPerMinute: number, running = false): number {
   const pace = Math.max(0, metersPerMinute);
-  const curve = COURSE_MET_CURVE;
+  const curve = running ? COURSE_MET_CURVE : MARCHE_MET_CURVE;
 
   const [firstPace, firstMet] = curve[0];
   // Plus lent que la plus lente allure mesurée : on redescend vers le repos.
@@ -360,7 +368,7 @@ function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): numbe
   // l'effort a coûté (10 min de rameur tranquille ≠ 10 min à fond).
   if (set.distanceM && set.distanceM > 0 && set.timeSec && set.timeSec > 0) {
     const metersPerMinute = set.distanceM / (set.timeSec / 60);
-    if (onFoot(item)) return courseMet(metersPerMinute);
+    if (onFoot(item)) return courseMet(metersPerMinute, item.isRunning ?? false);
     const table = paceTableFor(item);
     if (table) {
       const found = table.find(([max]) => metersPerMinute < max);

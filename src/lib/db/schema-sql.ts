@@ -23,6 +23,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     met          real,
     tracking     text NOT NULL DEFAULT 'reps_weight',
     uses_incline boolean NOT NULL DEFAULT false,
+    is_running boolean NOT NULL DEFAULT false,
     rep_seconds  real,
     rep_range_m  real,
     is_custom    boolean NOT NULL DEFAULT false,
@@ -34,6 +35,7 @@ export const SCHEMA_STATEMENTS: string[] = [
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS steps text[] NOT NULL DEFAULT '{}'`,
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS met real`,
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS uses_incline boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS is_running boolean NOT NULL DEFAULT false`,
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS rep_seconds real`,
   `ALTER TABLE exercises ADD COLUMN IF NOT EXISTS rep_range_m real`,
 

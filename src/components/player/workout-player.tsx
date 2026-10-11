@@ -73,6 +73,7 @@ export type PlayerItemData = {
   section: string;
   met: number | null;
   usesIncline: boolean;
+  isRunning: boolean;
   repSeconds: number | null;
   repRangeM: number | null;
   sets: number;
@@ -1419,6 +1420,7 @@ function toEffortItem(item: PlayerItemData): EffortItem {
     met: item.met,
     equipment: item.equipment,
     usesIncline: item.usesIncline,
+    isRunning: item.isRunning,
     repSeconds: item.repSeconds,
     repRangeM: item.repRangeM,
     restSec: item.restSec,

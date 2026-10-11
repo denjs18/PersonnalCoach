@@ -47,6 +47,7 @@ export function ExerciseForm({
   // Tant que le coach n'a pas choisi lui-même, l'intensité suit la catégorie.
   const [metChosen, setMetChosen] = useState(initial?.met != null);
   const [usesIncline, setUsesIncline] = useState(initial?.usesIncline ?? false);
+  const [isRunning, setIsRunning] = useState(initial?.isRunning ?? false);
   const [repSeconds, setRepSeconds] = useState(
     initial?.repSeconds != null ? String(initial.repSeconds) : "",
   );
@@ -79,6 +80,7 @@ export function ExerciseForm({
         tracking,
         met,
         usesIncline,
+        isRunning,
         repSeconds: repSeconds.trim() ? Number(repSeconds.replace(",", ".")) : null,
         repRangeM: repRange.trim() ? Number(repRange.replace(",", ".")) : null,
       });
@@ -203,6 +205,36 @@ export function ExerciseForm({
             <span className="block text-[11px] text-faint">
               Tapis incliné, côte, escaliers. Elle note l'inclinaison, et la dépense se
               calcule dessus — monter lentement coûte bien plus que marcher à plat.
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => setIsRunning((v) => !v)}
+          className={cn(
+            "flex w-full items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition active:scale-[0.99]",
+            isRunning
+              ? "border-brand/60 bg-brand/15 text-fg"
+              : "border-line bg-surface-2 text-muted",
+          )}
+        >
+          <span
+            className={cn(
+              "mt-0.5 grid size-4 shrink-0 place-items-center rounded border",
+              isRunning ? "border-brand bg-brand text-ink" : "border-line",
+            )}
+          >
+            {isRunning ? <Check className="size-3" strokeWidth={3} /> : null}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold">Cet exercice se court</span>
+            <span className="block text-[11px] text-faint">
+              À allure égale, courir coûte le double de marcher. Un kilomètre lent ne
+              dit pas lequel des deux a eu lieu : coche si c'est de la course, même
+              hachée d'arrêts ou de portions marchées.
             </span>
           </span>
         </button>

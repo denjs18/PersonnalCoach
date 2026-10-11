@@ -270,28 +270,61 @@ export const PACE_MET: Record<string, Array<[maxMetersPerMinute: number, met: nu
 };
 
 /**
- * Marche et course à pied, mesurées par le Compendium à chaque allure.
+ * Marche à pied, mesurée par le Compendium à chaque allure.
  *
  * Contrairement aux machines, on n'applique pas ici des paliers mais une
  * courbe continue : entre deux allures mesurées, on interpole.
  *
- * Ce n'est pas un confort d'affichage, c'est le mouvement lui-même. Personne
- * ne court à 6,9 km/h : on y arrive en alternant marche et course, et le coût
- * d'une alternance est bien la moyenne des deux allures. Un palier, lui,
- * facturerait ce kilomètre au prix d'une course continue à 8 km/h — soit 8,3
- * MET là où la réalité en vaut 6,1.
+ * Ce n'est pas un confort d'affichage, c'est le mouvement lui-même. On ne
+ * marche pas à 6,9 km/h sans se mettre à trotter par moments, et le coût d'une
+ * alternance est bien la moyenne des deux allures. Un palier, lui, facturerait
+ * ce kilomètre au prix d'une course continue à 8 km/h — soit 8,3 MET là où la
+ * réalité en vaut 6,1.
+ *
+ * Cette courbe est celle de la marche. Un exercice couru suit la suivante, qui
+ * coûte environ le double à allure égale.
  *
  * Allure en mètres par minute, le Compendium étant donné en miles par heure :
  * 3 mph = 80,5 m/min, 5 mph = 134,1 m/min.
  */
-export const COURSE_MET_CURVE: Array<[metersPerMinute: number, met: number]> = [
+export const MARCHE_MET_CURVE: Array<[metersPerMinute: number, met: number]> = [
   [53.6, 2.8], // 2 mph — marche lente
   [67.0, 3.0], // 2,5 mph
   [80.5, 3.5], // 3 mph
   [93.9, 4.3], // 3,5 mph — marche soutenue
   [107.3, 5.0], // 4 mph — marche rapide
   [120.7, 7.0], // 4,5 mph — marche très rapide, déjà presque une course
-  [134.1, 8.3], // 5 mph — course
+  [134.1, 8.3], // 5 mph — au-delà, on court forcément
+  [160.9, 9.8], // 6 mph
+  [187.7, 11.0], // 7 mph
+  [214.5, 11.8], // 8 mph
+  [241.4, 12.8], // 9 mph
+  [268.2, 14.5], // 10 mph
+];
+
+/**
+ * Course à pied, à chaque allure.
+ *
+ * Courir n'est pas marcher vite : à allure égale, le coût est environ le
+ * double, parce qu'à chaque foulée le corps décolle et retombe. C'est aussi
+ * pour ça qu'un kilomètre couru coûte à peu près autant quelle que soit la
+ * vitesse — environ 1 kcal par kilo et par kilomètre — là où un kilomètre
+ * marché en coûte la moitié.
+ *
+ * Conséquence pratique : un kilomètre lent ne dit rien à lui seul. Le même
+ * 12:00 au kilomètre vaut 3,5 MET en marchant et 5,6 MET en trottinant ou en
+ * courant avec des arrêts. Seul l'exercice sait lequel des deux a eu lieu,
+ * d'où le drapeau « cet exercice se court ».
+ *
+ * Au-dessus de 5 mph, les allures mesurées du Compendium. En dessous, où le
+ * Compendium ne mesure plus que « jogging » sans vitesse, l'équation de
+ * l'ACSM pour la course : VO₂ = 0,2 × allure + 3,5.
+ */
+export const COURSE_MET_CURVE: Array<[metersPerMinute: number, met: number]> = [
+  [53.6, 4.1], // 2 mph — ACSM
+  [80.5, 5.6], // 3 mph — ACSM
+  [107.3, 7.1], // 4 mph — ACSM
+  [134.1, 8.3], // 5 mph — Compendium
   [160.9, 9.8], // 6 mph
   [187.7, 11.0], // 7 mph
   [214.5, 11.8], // 8 mph
