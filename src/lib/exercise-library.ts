@@ -1690,6 +1690,25 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     tracking: "time_distance",
   },
   {
+    name: "Course à pied",
+    category: "cardio",
+    equipment: ["aucun"],
+    muscles: ["Jambes", "Cardio"],
+    description:
+      "Sortie en extérieur, en alternant marche et course selon l'allure qui tient.",
+    steps: [
+      "Pars tranquille : le premier kilomètre sert d'échauffement.",
+      "Alterne marche et course, par portions ou par minutes.",
+      "Note le temps de chaque kilomètre : c'est l'allure qui dit la dépense.",
+      "Termine par quelques minutes de marche pour faire redescendre.",
+    ],
+    cues: "Foulée courte et posée, respiration régulière. Une allure qu'on peut tenir vaut mieux qu'une pointe payée cher.",
+    // MET de secours uniquement : dès qu'un temps et une distance sont notés,
+    // c'est l'allure réelle qui commande, kilomètre par kilomètre.
+    met: 8,
+    tracking: "time_distance",
+  },
+  {
     name: "Circuit métabolique",
     category: "cardio",
     equipment: ["aucun"],

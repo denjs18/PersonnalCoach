@@ -12,6 +12,7 @@ import {
   STEP_HEIGHT_M,
   SLED_FRICTION,
   SLED_OWN_MASS_KG,
+  COURSE_MET_CURVE,
   PACE_MET,
   REST_MET,
   RESTING_OVER_BASAL,
@@ -226,11 +227,44 @@ function paceTableFor(item: EffortItem): Array<[number, number]> | null {
   if (equipment.includes("rameur")) return PACE_MET.rameur;
   if (equipment.includes("ski_erg")) return PACE_MET.ski_erg;
   if (equipment.includes("velo")) return PACE_MET.velo;
-  // Pas de machine : une distance parcourue, c'est de la marche ou de la course.
-  if (equipment.length === 0 || equipment.includes("aucun") || equipment.includes("poids_du_corps")) {
-    return PACE_MET.course;
-  }
   return null;
+}
+
+/** L'exercice se fait-il à pied, sans machine ? */
+function onFoot(item: EffortItem): boolean {
+  const equipment = item.equipment ?? [];
+  if (equipment.length === 0) return true;
+  return equipment.every((e) => e === "aucun" || e === "poids_du_corps");
+}
+
+/**
+ * Coût d'un déplacement à pied, en MET, d'après l'allure.
+ *
+ * On interpole entre les allures mesurées du Compendium au lieu de ranger
+ * l'allure dans un palier. Un kilomètre à 6,9 km/h n'est pas un kilomètre de
+ * course à 8 km/h : c'est de la marche et de la course en alternance, et son
+ * coût est la moyenne des deux. Le palier le facturerait 8,3 MET, la courbe
+ * en donne 6,1.
+ */
+export function courseMet(metersPerMinute: number): number {
+  const pace = Math.max(0, metersPerMinute);
+  const curve = COURSE_MET_CURVE;
+
+  const [firstPace, firstMet] = curve[0];
+  // Plus lent que la plus lente allure mesurée : on redescend vers le repos.
+  if (pace <= firstPace) return 1 + (firstMet - 1) * (pace / firstPace);
+
+  const last = curve[curve.length - 1];
+  if (pace >= last[0]) return last[1];
+
+  for (let i = 1; i < curve.length; i++) {
+    const [haut, metHaut] = curve[i];
+    if (pace < haut) {
+      const [bas, metBas] = curve[i - 1];
+      return metBas + ((pace - bas) / (haut - bas)) * (metHaut - metBas);
+    }
+  }
+  return last[1];
 }
 
 /** Allure notée d'une série, en mètres par minute. */
@@ -325,9 +359,10 @@ function metOf(item: EffortItem, set: EffortSet, profile: AthleteProfile): numbe
   // Distance et durée notées : l'allure dit bien mieux que l'exercice ce que
   // l'effort a coûté (10 min de rameur tranquille ≠ 10 min à fond).
   if (set.distanceM && set.distanceM > 0 && set.timeSec && set.timeSec > 0) {
+    const metersPerMinute = set.distanceM / (set.timeSec / 60);
+    if (onFoot(item)) return courseMet(metersPerMinute);
     const table = paceTableFor(item);
     if (table) {
-      const metersPerMinute = set.distanceM / (set.timeSec / 60);
       const found = table.find(([max]) => metersPerMinute < max);
       if (found) return found[1];
     }

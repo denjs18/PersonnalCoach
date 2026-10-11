@@ -267,16 +267,37 @@ export const PACE_MET: Record<string, Array<[maxMetersPerMinute: number, met: nu
     [500, 10],
     [Infinity, 12],
   ],
-  // Marche puis course, de 5 à plus de 11 km/h.
-  course: [
-    [90, 3.5],
-    [107, 6],
-    [134, 8.3],
-    [161, 9.8],
-    [188, 11],
-    [Infinity, 12.8],
-  ],
 };
+
+/**
+ * Marche et course à pied, mesurées par le Compendium à chaque allure.
+ *
+ * Contrairement aux machines, on n'applique pas ici des paliers mais une
+ * courbe continue : entre deux allures mesurées, on interpole.
+ *
+ * Ce n'est pas un confort d'affichage, c'est le mouvement lui-même. Personne
+ * ne court à 6,9 km/h : on y arrive en alternant marche et course, et le coût
+ * d'une alternance est bien la moyenne des deux allures. Un palier, lui,
+ * facturerait ce kilomètre au prix d'une course continue à 8 km/h — soit 8,3
+ * MET là où la réalité en vaut 6,1.
+ *
+ * Allure en mètres par minute, le Compendium étant donné en miles par heure :
+ * 3 mph = 80,5 m/min, 5 mph = 134,1 m/min.
+ */
+export const COURSE_MET_CURVE: Array<[metersPerMinute: number, met: number]> = [
+  [53.6, 2.8], // 2 mph — marche lente
+  [67.0, 3.0], // 2,5 mph
+  [80.5, 3.5], // 3 mph
+  [93.9, 4.3], // 3,5 mph — marche soutenue
+  [107.3, 5.0], // 4 mph — marche rapide
+  [120.7, 7.0], // 4,5 mph — marche très rapide, déjà presque une course
+  [134.1, 8.3], // 5 mph — course
+  [160.9, 9.8], // 6 mph
+  [187.7, 11.0], // 7 mph
+  [214.5, 11.8], // 8 mph
+  [241.4, 12.8], // 9 mph
+  [268.2, 14.5], // 10 mph
+];
 
 /** Durée moyenne d'une répétition, selon la famille d'exercices (secondes). */
 export const SECONDS_PER_REP: Record<CategoryKey, number> = {
