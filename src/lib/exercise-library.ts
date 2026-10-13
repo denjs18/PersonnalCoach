@@ -1711,6 +1711,23 @@ export const EXERCISE_LIBRARY: SeedExercise[] = [
     tracking: "time_distance",
   },
   {
+    name: "Marche",
+    category: "cardio",
+    equipment: ["aucun"],
+    muscles: ["Jambes", "Cardio"],
+    description: "Marche à plat, en extérieur ou sur tapis sans inclinaison.",
+    steps: [
+      "Allure soutenue, celle où parler devient un peu court.",
+      "Buste droit, les bras balancent librement.",
+      "Note le temps et la distance : c'est l'allure qui donne la dépense.",
+    ],
+    cues: "Déroule bien le pied, du talon vers les orteils. Pas de bras croisés.",
+    // MET de secours : dès qu'un temps et une distance sont notés, c'est
+    // l'allure qui commande. Marcher coûte environ moitié moins que courir.
+    met: 3.5,
+    tracking: "time_distance",
+  },
+  {
     name: "Circuit métabolique",
     category: "cardio",
     equipment: ["aucun"],
